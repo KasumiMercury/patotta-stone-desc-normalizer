@@ -20,7 +20,7 @@
 
 .container {
   margin: 0;
-  padding-top: 10vh;
+  padding-top: 2vh;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -57,8 +57,7 @@ h1 {
   text-align: center;
 }
 
-input,
-button {
+input {
   border-radius: 8px;
   border: 1px solid transparent;
   padding: 0.6em 1.2em;
@@ -71,20 +70,7 @@ button {
   box-shadow: 0 2px 2px rgba(0, 0, 0, 0.2);
 }
 
-button {
-  cursor: pointer;
-}
-
-button:hover {
-  border-color: #396cd8;
-}
-button:active {
-  border-color: #396cd8;
-  background-color: #e8e8e8;
-}
-
-input,
-button {
+input {
   outline: none;
 }
 
@@ -102,12 +88,8 @@ button {
     color: #24c8db;
   }
 
-  input,
-  button {
+  input {
     color: #ffffff;
     background-color: #0f0f0f98;
-  }
-  button:active {
-    background-color: #0f0f0f69;
   }
 }
