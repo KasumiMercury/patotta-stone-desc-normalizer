@@ -1,24 +1,28 @@
 import { open } from "@tauri-apps/api/dialog";
-import { invoke } from "@tauri-apps/api/tauri";
 import { useState } from "react";
 import "./App.css";
 
 function App() {
-	const [greetMsg, setGreetMsg] = useState("");
-	const [name, setName] = useState("");
+	const [filePath, setFilePath] = useState("");
 
 	function openLoadDialog() {
 		open({
 			directory: false,
+			multiple: false,
 			// filters: [{ name: 'csv', extensions: ['csv'] }],
 		}).then((res) => {
-			console.log(res);
+			// if res is null, the user closed the dialog without selecting a file
+			if (res === null) {
+				return;
+			}
+			// if res is an array, occurs error
+			// can't select multiple files
+			if (Array.isArray(res)) {
+				console.error("Error: open dialog return an array");
+				return;
+			}
+			setFilePath(res);
 		});
-	}
-
-	async function greet() {
-		// Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-		setGreetMsg(await invoke("greet", { name }));
 	}
 
 	return (
@@ -40,24 +44,7 @@ function App() {
 			</div>
 			<h1 className="text-xl">Welcome to Tauri!</h1>
 
-			<p>Click on the Tauri, Vite, and React logos to learn more.</p>
-
-			<form
-				className="row"
-				onSubmit={(e) => {
-					e.preventDefault();
-					greet();
-				}}
-			>
-				<input
-					id="greet-input"
-					onChange={(e) => setName(e.currentTarget.value)}
-					placeholder="Enter a name..."
-				/>
-				<button type="submit">Greet</button>
-			</form>
-
-			<p>{greetMsg}</p>
+			<p>{filePath}</p>
 		</div>
 	);
 }
