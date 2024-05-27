@@ -12,7 +12,7 @@ fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
 }
 
-fn fopen(path: &str) -> Result<File, Box<dyn Error>>{
+fn file_open(path: &str) -> Result<File, Box<dyn Error>>{
     let file = File::open(path)?;
     Ok(file)
 }
@@ -27,7 +27,7 @@ fn csv_parse(file: File) -> Result<(), Box<dyn Error>> {
 }
 
 fn load_csv(path: &str) -> Result<(), Box<dyn Error>> {
-    match csv_parse(fopen(&path).unwrap()) {
+    match csv_parse(file_open(&path).unwrap()) {
         Ok(_) => Ok(()),
         Err(e) => Err(e)
     }
