@@ -26,6 +26,13 @@ fn csv_parse(file: File) -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
+fn load_csv(path: &str) -> Result<(), Box<dyn Error>> {
+    match csv_parse(fopen(&path).unwrap()) {
+        Ok(_) => Ok(()),
+        Err(e) => Err(e)
+    }
+}
+
 fn main() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![greet])
