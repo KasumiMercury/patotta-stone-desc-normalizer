@@ -23,25 +23,34 @@ fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
 }
 
-fn file_open(path: &str) -> Result<File, Box<dyn Error>>{
-    let file = File::open(path)?;
-    Ok(file)
+fn file_open(path: &str) -> AnyHowResult<File>{
+    match File::open(path) {
+        Ok(file) => Ok(file),
+        Err(e) => Err(anyhow!(CsvError::Io(e.to_string()))
+            .context(format!("Failed to open file: {}", path))
+        )
+    }
 }
 
-fn csv_parse(file: File) -> Result<(), Box<dyn Error>> {
+fn csv_parse(file: File) -> AnyHowResult<()> {
     let mut rdr = csv::Reader::from_reader(file);
     for result in rdr.records() {
-        let record = result?;
-        println!("{:?}", record);
+        match result {
+            Ok(record) => {
+                println!("{:?}", record);
+            }
+            Err(e) => {
+                return Err(anyhow!(CsvError::Csv(e.to_string()))
+                    .context("Failed to parse CSV record"));
+            }
+        }
     }
     Ok(())
 }
 
-fn load_csv(path: &str) -> Result<(), Box<dyn Error>> {
-    match csv_parse(file_open(&path).unwrap()) {
-        Ok(_) => Ok(()),
-        Err(e) => Err(e)
-    }
+fn load_csv(path: &str) -> AnyHowResult<()> {
+    let file = file_open(path)?;
+    csv_parse(file)
 }
 
 fn main() {
