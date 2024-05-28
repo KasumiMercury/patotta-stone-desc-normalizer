@@ -3,7 +3,6 @@
 
 extern crate csv;
 
-use std::error::Error;
 use std::fs::File;
 use anyhow::{anyhow, Context, Result as AnyHowResult};
 use thiserror::Error;
