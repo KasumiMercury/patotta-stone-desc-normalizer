@@ -5,6 +5,17 @@ extern crate csv;
 
 use std::error::Error;
 use std::fs::File;
+use anyhow::{anyhow, Context, Result as AnyHowResult};
+use thiserror::Error;
+
+// Define Custom Error
+#[derive(Debug, Error)]
+enum CsvError {
+    #[error("IO Error: {0}")]
+    Io(String),
+    #[error("CSV Error: {0}")]
+    Csv(String),
+}
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
