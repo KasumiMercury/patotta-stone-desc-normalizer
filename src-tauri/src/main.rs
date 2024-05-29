@@ -18,7 +18,7 @@ fn greet(name: &str) -> String {
 
 fn file_open(path: &str) -> Result<File, CustomError> {
     let file = File::open(path)
-        .map_err(|e| CustomError::Anyhow(anyhow!("IO Error: {}", e)))
+        .map_err(|e| CustomError::Anyhow(anyhow!("File Error: {}", e)))
         .with_context(|| format!("Failed to open file: {}", path))?;
     Ok(file)
 }
