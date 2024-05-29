@@ -4,11 +4,10 @@
 extern crate csv;
 
 use std::fs::File;
-use anyhow::{anyhow, Context, Result as AnyHowResult};
-use thiserror::Error;
+use anyhow::{anyhow, Context, Result};
 
 // Define Custom Error
-#[derive(Debug, Error)]
+#[derive(Debug, thiserror::Error)]
 enum CsvError {
     #[error("IO Error: {0}")]
     Io(String),
@@ -22,7 +21,7 @@ fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
 }
 
-fn file_open(path: &str) -> AnyHowResult<File>{
+fn file_open(path: &str) -> Result<File>{
     match File::open(path) {
         Ok(file) => Ok(file),
         Err(e) => Err(anyhow!(CsvError::Io(e.to_string()))
@@ -31,7 +30,7 @@ fn file_open(path: &str) -> AnyHowResult<File>{
     }
 }
 
-fn csv_parse(file: File) -> AnyHowResult<()> {
+fn csv_parse(file: File) -> Result<()> {
     let mut rdr = csv::Reader::from_reader(file);
     for result in rdr.records() {
         match result {
@@ -47,7 +46,7 @@ fn csv_parse(file: File) -> AnyHowResult<()> {
     Ok(())
 }
 
-fn load_csv(path: &str) -> AnyHowResult<()> {
+fn load_csv(path: &str) -> Result<()> {
     let file = file_open(path)?;
     csv_parse(file)
 }
