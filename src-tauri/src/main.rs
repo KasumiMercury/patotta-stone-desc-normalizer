@@ -17,7 +17,7 @@ fn greet(name: &str) -> String {
 
 fn file_open(path: &str) -> Result<File, CustomError>{
     let file = File::open(path)
-        .map_err(|e| CustomError::IoError(e))
+        .map_err(|e| CustomError::Anyhow(anyhow!("IO Error: {}", e)))
         .with_context(|| format!("Failed to open file: {}", path))?;
     Ok(file)
 }
@@ -25,7 +25,7 @@ fn file_open(path: &str) -> Result<File, CustomError>{
 fn csv_parse(file: File) -> Result<(), CustomError> {
     let mut rdr = csv::Reader::from_reader(file);
     for result in rdr.records() {
-        let record = result.map_err(|e| CustomError::CsvReaderError(e))?;
+        let record = result.map_err(|e| CustomError::Anyhow(anyhow!("CSV Error: {}", e)))?;
         println!("{:?}", record);
     }
     Ok(())
