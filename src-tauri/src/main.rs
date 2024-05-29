@@ -16,10 +16,10 @@ fn greet(name: &str) -> String {
 }
 
 fn file_open(path: &str) -> Result<File, CustomError>{
-    match File::open(path) {
-        Ok(file) => Ok(file),
-        Err(e) => Err(CustomError::IoError(e))
-    }
+    let file = File::open(path)
+        .map_err(|e| CustomError::IoError(e))
+        .with_context(|| format!("Failed to open file: {}", path))?;
+    Ok(file)
 }
 
 fn csv_parse(file: File) -> Result<(), CustomError> {
