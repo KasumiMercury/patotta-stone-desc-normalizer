@@ -43,3 +43,19 @@ fn main() {
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_greet() {
+        assert_eq!(greet("world"), "Hello, world! You've been greeted from Rust!");
+    }
+
+    #[test]
+    fn test_load_nonexistent_file() {
+        let result = load_csv("nonexistent.csv");
+        assert!(result.is_err());
+    }
+}
