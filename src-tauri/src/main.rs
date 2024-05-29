@@ -4,7 +4,7 @@
 extern crate csv;
 
 use std::fs::File;
-use anyhow::{anyhow, Context, Result};
+use anyhow::{anyhow, Context as _, Result};
 
 // Define Custom Error
 #[derive(Debug, thiserror::Error)]
