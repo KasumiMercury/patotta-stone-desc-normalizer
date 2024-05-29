@@ -25,17 +25,8 @@ fn file_open(path: &str) -> Result<File, CustomError>{
 fn csv_parse(file: File) -> Result<(), CustomError> {
     let mut rdr = csv::Reader::from_reader(file);
     for result in rdr.records() {
-        match result {
-            Ok(record) => {
-                println!("{:?}", record);
-            }
-            Err(e) => {
-                return Err(
-                    CustomError::CsvReaderError(e)
-                        .context("Failed to read CSV file")
-                );
-            }
-        }
+        let record = result.map_err(|e| CustomError::CsvReaderError(e))?;
+        println!("{:?}", record);
     }
     Ok(())
 }
