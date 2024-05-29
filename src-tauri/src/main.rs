@@ -4,6 +4,7 @@
 use std::fs::File;
 
 use anyhow::{anyhow, Context as _, Result};
+use dotenvy::dotenv;
 
 use custom_error::CustomError;
 
@@ -38,6 +39,7 @@ fn load_csv(path: &str) -> Result<(), CustomError> {
 }
 
 fn main() {
+    dotenv().expect("Failed to load .env file");
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![greet])
         .run(tauri::generate_context!())
