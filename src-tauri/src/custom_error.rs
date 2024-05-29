@@ -1,8 +1,5 @@
-use anyhow::{anyhow, Context as _, Result};
-use thiserror::Error;
-
 // Define Custom Error
-#[derive(Debug, Error)]
+#[derive(Debug, thiserror::Error)]
 pub enum CustomError {
     #[error(transparent)]
     Anyhow(#[from] anyhow::Error),
