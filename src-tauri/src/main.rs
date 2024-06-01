@@ -51,7 +51,13 @@ fn csv_parse(file: File) -> Result<Vec<Record>, CustomError> {
 fn load_csv(path: &str) -> Result<(), CustomError> {
     let file = file_open(path)
         .context("Failed to open file")?;
-    csv_parse(file)
+    let records = csv_parse(file)
+    .context("Failed to parse CSV")?;
+
+    for record in records {
+        println!("{} : {}", record.source_id, record.title);
+    }
+    Ok(())
 }
 
 fn main() {
