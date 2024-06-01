@@ -63,6 +63,26 @@ fn load_csv(path: &str) -> Result<(), CustomError> {
 fn main() {
     dotenv().expect("Failed to load .env file");
     tauri::Builder::default()
+        .plugin(
+            tauri_plugin_sql::Builder::default()
+                .add_migrations(
+                    "sqlite:store.db",
+                    vec![tauri_plugin_sql::Migration{
+                        version: 1,
+                        description: "create table",
+                        sql: "CREATE TABLE IF NOT EXISTS records (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            source_id TEXT NOT NULL,
+                            title TEXT NOT NULL,
+                            description TEXT NOT NULL,
+                            published_at TEXT NOT NULL,
+                            actual_start_at TEXT NOT NULL
+                        )",
+                        kind: tauri_plugin_sql::MigrationKind::Up,
+                    }],
+                )
+                .build(),
+        )
         .invoke_handler(tauri::generate_handler![greet])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
