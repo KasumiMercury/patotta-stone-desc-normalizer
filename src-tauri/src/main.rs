@@ -36,9 +36,11 @@ struct Record {
 
 fn csv_parse(file: File) -> Result<(), CustomError> {
     let mut rdr = csv::Reader::from_reader(file);
-    for result in rdr.records() {
-        let record = result.map_err(|e| CustomError::Anyhow(anyhow!("CSV Error: {}", e)))?;
-        println!("{:?}", record);
+    for result in rdr.deserialize() {
+        let record: Record = result
+            .map_err(|e| CustomError::Anyhow(anyhow!("CSV Error: {}", e)))
+            .with_context(|| "Failed to parse CSV record")?;
+        println!("{:?}", record.source_id);
     }
     Ok(())
 }
