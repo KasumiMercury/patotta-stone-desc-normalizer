@@ -70,14 +70,7 @@ fn main() {
                     vec![tauri_plugin_sql::Migration{
                         version: 1,
                         description: "create table",
-                        sql: "CREATE TABLE IF NOT EXISTS records (
-                            id INTEGER PRIMARY KEY AUTOINCREMENT,
-                            source_id TEXT NOT NULL,
-                            title TEXT NOT NULL,
-                            description TEXT NOT NULL,
-                            published_at TEXT NOT NULL,
-                            actual_start_at TEXT NOT NULL
-                        )",
+                        sql: include_str!("../migrations/description.sql"),
                         kind: tauri_plugin_sql::MigrationKind::Up,
                     }],
                 )
