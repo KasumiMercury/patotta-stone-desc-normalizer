@@ -67,12 +67,20 @@ fn main() {
             tauri_plugin_sql::Builder::default()
                 .add_migrations(
                     "sqlite:store.db",
-                    vec![tauri_plugin_sql::Migration{
-                        version: 1,
-                        description: "create table",
-                        sql: include_str!("../migrations/description.sql"),
-                        kind: tauri_plugin_sql::MigrationKind::Up,
-                    }],
+                    vec![
+                        tauri_plugin_sql::Migration{
+                            version: 1,
+                            description: "create description table",
+                            sql: include_str!("../migrations/description.sql"),
+                            kind: tauri_plugin_sql::MigrationKind::Up,
+                        },
+                        tauri_plugin_sql::Migration{
+                            version: 1,
+                            description: "create pattern table",
+                            sql: include_str!("../migrations/pattern.sql"),
+                            kind: tauri_plugin_sql::MigrationKind::Up,
+                        },
+                    ],
                 )
                 .build(),
         )
