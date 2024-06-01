@@ -34,15 +34,18 @@ struct Record {
     actual_start_at: String,
 }
 
-fn csv_parse(file: File) -> Result<(), CustomError> {
+fn csv_parse(file: File) -> Result<Vec<Record>, CustomError> {
     let mut rdr = csv::Reader::from_reader(file);
+
+    let mut records = Vec::new();
+
     for result in rdr.deserialize() {
         let record: Record = result
             .map_err(|e| CustomError::Anyhow(anyhow!("CSV Error: {}", e)))
             .with_context(|| "Failed to parse CSV record")?;
-        println!("{:?}", record.source_id);
+        records.push(record);
     }
-    Ok(())
+    Ok((records))
 }
 
 fn load_csv(path: &str) -> Result<(), CustomError> {
