@@ -8,6 +8,8 @@ use dotenvy::dotenv;
 
 use custom_error::CustomError;
 
+use serde::Deserialize;
+
 mod custom_error;
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
@@ -21,6 +23,15 @@ fn file_open(path: &str) -> Result<File, CustomError> {
         .map_err(|e| CustomError::Anyhow(anyhow!("File Error: {}", e)))
         .with_context(|| format!("Failed to open file: {}", path))?;
     Ok(file)
+}
+
+#[derive(Deserialize)]
+struct Record {
+    source_id: String,
+    title: String,
+    description: String,
+    published_at: String,
+    actual_start_at: String,
 }
 
 fn csv_parse(file: File) -> Result<(), CustomError> {
