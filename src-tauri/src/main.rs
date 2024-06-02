@@ -19,7 +19,10 @@ static POOL: Lazy<Mutex<SqlitePool>> = Lazy::new(|| {
     // load .env file
     dotenv().expect("Failed to load .env file");
     // create SQLite pool
-    let pool = create_sqlite_pool().expect("Failed to create SQLite pool");
+    let pool = match create_sqlite_pool() {
+        Ok(pool) => pool,
+        Err(e) => panic!("Failed to create SQLite pool: {}", e)
+    };
     Mutex::new(pool)
 });
 
