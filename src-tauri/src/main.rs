@@ -5,6 +5,7 @@ use std::fs::File;
 
 use anyhow::{anyhow, Context as _, Result};
 use dotenvy::dotenv;
+use sqlx::sqlite::SqlitePool;
 
 use custom_error::CustomError;
 
@@ -60,8 +61,18 @@ fn load_csv(path: &str) -> Result<(), CustomError> {
     Ok(())
 }
 
-fn main() {
+async fn create_sqlite_pool() -> Result<sqlx::SqlitePool, CustomError> {
+    let database_url = std::env::var("DATABASE_URL")
+        .context("DATABASE_URL must be set")?;
+    let pool = SqlitePool::connect(&database_url).await
+        .map_err(|e| CustomError::Anyhow(anyhow!("Failed to create SQLite pool: {}", e)))?;
+    Ok(pool)
+}
+
+#[tokio::main]
+async fn main() {
     dotenv().expect("Failed to load .env file");
+    create_sqlite_pool().await.expect("Failed to create SQLite pool");
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![greet])
         .run(tauri::generate_context!())
