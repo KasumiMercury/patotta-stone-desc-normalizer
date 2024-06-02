@@ -7,7 +7,7 @@ use dotenvy::dotenv;
 use serde::Deserialize;
 use sqlx::sqlite::SqlitePool;
 use std::fs::File;
-use tauri::Manager;
+use tauri::{Manager, State};
 
 mod custom_error;
 
@@ -66,9 +66,7 @@ fn csv_parse(file: File) -> Result<Vec<Record>, CustomError> {
     Ok(records)
 }
 
-async fn initialize_desc_table_by_records(records: Vec<Record>) -> Result<(), CustomError> {
-    let pool = get_sqlite_pool().await?;
-
+async fn initialize_desc_table_by_records(pool: State<'_, SqlitePool>, records: Vec<Record>) -> Result<(), CustomError> {
     // if data is already present, delete it
     sqlx::query("DELETE FROM desc")
         .execute(&pool)
