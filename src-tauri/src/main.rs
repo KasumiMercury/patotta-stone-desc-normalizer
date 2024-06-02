@@ -100,7 +100,7 @@ fn load_csv(path: &str) -> Result<(), CustomError> {
 async fn main() {
     dotenv().expect("Failed to load .env file");
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![greet])
+        .invoke_handler(tauri::generate_handler![greet, load_csv])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
