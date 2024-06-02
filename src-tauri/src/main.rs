@@ -92,7 +92,7 @@ async fn initialize_desc_table_by_records(
 }
 
 #[tauri::command]
-async fn load_csv(pool:State<'_, SqlitePool>, path: &str) -> Result<(), CustomError> {
+async fn load_csv(pool: State<'_, SqlitePool>, path: &str) -> Result<(), CustomError> {
     let file = file_open(path).context("Failed to open file")?;
     let records = csv_parse(file).context("Failed to parse CSV")?;
 
