@@ -73,6 +73,7 @@ async fn initialize_desc_table_by_records(records: Vec<Record>) -> Result<(), Cu
     Ok(())
 }
 
+#[tauri::command]
 fn load_csv(path: &str) -> Result<(), CustomError> {
     let file = file_open(path)
         .context("Failed to open file")?;
