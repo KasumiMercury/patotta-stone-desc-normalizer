@@ -63,7 +63,7 @@ fn csv_parse(file: File) -> Result<Vec<Record>, CustomError> {
             .with_context(|| "Failed to parse CSV record")?;
         records.push(record);
     }
-    Ok((records))
+    Ok(records)
 }
 
 async fn initialize_desc_table_by_records(records: Vec<Record>) -> Result<(), CustomError> {
