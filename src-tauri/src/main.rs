@@ -19,6 +19,14 @@ fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
 }
 
+async fn get_sqlite_pool() -> Result<SqlitePool, CustomError> {
+    let database_url = std::env::var("DATABASE_URL")
+        .map_err(|_| CustomError::Anyhow(anyhow!("DATABASE_URL must be set")))?;
+    let pool = SqlitePool::connect(&database_url).await
+        .map_err(|e| CustomError::Anyhow(anyhow!("Failed to create SQLite pool: {}", e)))?;
+    Ok(pool)
+}
+
 fn file_open(path: &str) -> Result<File, CustomError> {
     let file = File::open(path)
         .map_err(|e| CustomError::Anyhow(anyhow!("File Error: {}", e)))
@@ -86,14 +94,6 @@ fn load_csv(path: &str) -> Result<(), CustomError> {
         .block_on(initialize_desc_table_by_records(records))
         .map_err(|e| CustomError::Anyhow(anyhow!("Failed to initialize desc table: {}", e)))?;
     Ok(())
-}
-
-async fn get_sqlite_pool() -> Result<SqlitePool, CustomError> {
-    let database_url = std::env::var("DATABASE_URL")
-        .map_err(|_| CustomError::Anyhow(anyhow!("DATABASE_URL must be set")))?;
-    let pool = SqlitePool::connect(&database_url).await
-        .map_err(|e| CustomError::Anyhow(anyhow!("Failed to create SQLite pool: {}", e)))?;
-    Ok(pool)
 }
 
 #[tokio::main]
