@@ -1,15 +1,12 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use std::fs::File;
-
 use anyhow::{anyhow, Context as _, Result};
-use dotenvy::dotenv;
-use sqlx::sqlite::SqlitePool;
-
 use custom_error::CustomError;
-
+use dotenvy::dotenv;
 use serde::Deserialize;
+use sqlx::sqlite::SqlitePool;
+use std::fs::File;
 
 mod custom_error;
 
@@ -31,8 +28,10 @@ fn greet(name: &str) -> String {
 async fn get_sqlite_pool() -> Result<SqlitePool, CustomError> {
     let database_url = std::env::var("DATABASE_URL")
         .map_err(|_| CustomError::Anyhow(anyhow!("DATABASE_URL must be set")))?;
-    let pool = SqlitePool::connect(&database_url).await
+    let pool = SqlitePool::connect(&database_url)
+        .await
         .map_err(|e| CustomError::Anyhow(anyhow!("Failed to create SQLite pool: {}", e)))?;
+
     Ok(pool)
 }
 
@@ -92,10 +91,8 @@ async fn initialize_desc_table_by_records(records: Vec<Record>) -> Result<(), Cu
 
 #[tauri::command]
 fn load_csv(path: &str) -> Result<(), CustomError> {
-    let file = file_open(path)
-        .context("Failed to open file")?;
-    let records = csv_parse(file)
-    .context("Failed to parse CSV")?;
+    let file = file_open(path).context("Failed to open file")?;
+    let records = csv_parse(file).context("Failed to parse CSV")?;
 
     // initialize the desc table with the records
     tokio::runtime::Runtime::new()
@@ -120,7 +117,10 @@ mod tests {
 
     #[test]
     fn test_greet() {
-        assert_eq!(greet("world"), "Hello, world! You've been greeted from Rust!");
+        assert_eq!(
+            greet("world"),
+            "Hello, world! You've been greeted from Rust!"
+        );
     }
 
     #[test]
