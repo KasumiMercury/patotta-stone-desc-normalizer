@@ -67,7 +67,7 @@ fn load_csv(path: &str) -> Result<(), CustomError> {
     Ok(())
 }
 
-async fn create_sqlite_pool() -> Result<SqlitePool, CustomError> {
+async fn get_sqlite_pool() -> Result<SqlitePool, CustomError> {
     let database_url = std::env::var("DATABASE_URL")
         .map_err(|_| CustomError::Anyhow(anyhow!("DATABASE_URL must be set")))?;
     let pool = SqlitePool::connect(&database_url).await
