@@ -66,7 +66,10 @@ fn csv_parse(file: File) -> Result<Vec<Record>, CustomError> {
     Ok(records)
 }
 
-async fn initialize_desc_table_by_records(pool: State<'_, SqlitePool>, records: Vec<Record>) -> Result<(), CustomError> {
+async fn initialize_desc_table_by_records(
+    pool: State<'_, SqlitePool>,
+    records: Vec<Record>,
+) -> Result<(), CustomError> {
     // if data is already present, delete it
     sqlx::query("DELETE FROM desc")
         .execute(&pool)
@@ -112,8 +115,7 @@ fn main() {
         .setup(|app| {
             app.manage(pool);
             Ok(())
-        }
-        )
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
