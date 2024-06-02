@@ -9,3 +9,6 @@ CREATE TABLE description (
   published_at TEXT NOT NULL,
   actual_start_at TEXT NOT NULL,
 );
+
+-- Add unique constraint to description table
+CREATE UNIQUE INDEX description_unique ON description (source_id);

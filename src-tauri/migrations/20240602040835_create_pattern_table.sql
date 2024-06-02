@@ -7,3 +7,6 @@ CREATE TABLE pattern (
   text TEXT NOT NULL,
   length_line INTEGER NOT NULL,
 );
+
+-- Add unique constraint to pattern table
+CREATE UNIQUE INDEX pattern_unique ON pattern (hash);
