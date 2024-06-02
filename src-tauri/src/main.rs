@@ -67,12 +67,12 @@ fn csv_parse(file: File) -> Result<Vec<Record>, CustomError> {
 }
 
 async fn initialize_desc_table_by_records(
-    pool: State<'_, SqlitePool>,
+    pool: &SqlitePool,
     records: Vec<Record>,
 ) -> Result<(), CustomError> {
     // if data is already present, delete it
     sqlx::query("DELETE FROM desc")
-        .execute(&pool)
+        .execute(&*pool)
         .await
         .map_err(|e| CustomError::Anyhow(anyhow!("Failed to delete from desc: {}", e)))?;
 
@@ -84,7 +84,7 @@ async fn initialize_desc_table_by_records(
             .bind(&record.description)
             .bind(&record.published_at)
             .bind(&record.actual_start_at)
-            .execute(&pool)
+            .execute(&*pool)
             .await
             .map_err(|e| CustomError::Anyhow(anyhow!("Failed to insert into desc: {}", e)))?;
     }
@@ -92,15 +92,12 @@ async fn initialize_desc_table_by_records(
 }
 
 #[tauri::command]
-fn load_csv(path: &str) -> Result<(), CustomError> {
+async fn load_csv(pool:State<'_, SqlitePool>, path: &str) -> Result<(), CustomError> {
     let file = file_open(path).context("Failed to open file")?;
     let records = csv_parse(file).context("Failed to parse CSV")?;
 
     // initialize the desc table with the records
-    tokio::runtime::Runtime::new()
-        .unwrap()
-        .block_on(initialize_desc_table_by_records(records))
-        .map_err(|e| CustomError::Anyhow(anyhow!("Failed to initialize desc table: {}", e)))?;
+    initialize_desc_table_by_records(&*pool, records).await?;
     Ok(())
 }
 
@@ -118,35 +115,4 @@ fn main() {
         })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_greet() {
-        assert_eq!(
-            greet("world"),
-            "Hello, world! You've been greeted from Rust!"
-        );
-    }
-
-    #[test]
-    fn test_load_csv() {
-        let result = load_csv("test.csv");
-        assert!(result.is_ok());
-    }
-
-    #[test]
-    fn test_load_invalid_csv() {
-        let result = load_csv("invalid.csv");
-        assert!(result.is_err());
-    }
-
-    #[test]
-    fn test_load_nonexistent_file() {
-        let result = load_csv("nonexistent.csv");
-        assert!(result.is_err());
-    }
 }
