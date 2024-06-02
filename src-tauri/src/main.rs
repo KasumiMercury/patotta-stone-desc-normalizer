@@ -2,8 +2,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use std::fs::File;
-use std::sync::Mutex;
-use once_cell::sync::Lazy;
 
 use anyhow::{anyhow, Context as _, Result};
 use dotenvy::dotenv;
@@ -51,9 +49,29 @@ fn csv_parse(file: File) -> Result<Vec<Record>, CustomError> {
     Ok((records))
 }
 
-// async fn initialize_desc_table_by_records(records: Vec<Record>) -> Result<(), CustomError> {
-//     Ok(())
-// }
+async fn initialize_desc_table_by_records(records: Vec<Record>) -> Result<(), CustomError> {
+    let pool = get_sqlite_pool().await?;
+
+    // if data is already present, delete it
+    sqlx::query("DELETE FROM desc")
+        .execute(&pool)
+        .await
+        .map_err(|e| CustomError::Anyhow(anyhow!("Failed to delete from desc: {}", e)))?;
+
+    // insert new data
+    for record in records {
+        sqlx::query("INSERT INTO desc (source_id, title, description, published_at, actual_start_at) VALUES (?, ?, ?, ?, ?)")
+            .bind(&record.source_id)
+            .bind(&record.title)
+            .bind(&record.description)
+            .bind(&record.published_at)
+            .bind(&record.actual_start_at)
+            .execute(&pool)
+            .await
+            .map_err(|e| CustomError::Anyhow(anyhow!("Failed to insert into desc: {}", e)))?;
+    }
+    Ok(())
+}
 
 fn load_csv(path: &str) -> Result<(), CustomError> {
     let file = file_open(path)
