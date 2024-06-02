@@ -13,10 +13,27 @@ use serde::Deserialize;
 
 mod custom_error;
 
+impl serde::Serialize for CustomError {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        serializer.serialize_str(self.to_string().as_ref())
+    }
+}
+
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
 fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
+}
+
+async fn get_sqlite_pool() -> Result<SqlitePool, CustomError> {
+    let database_url = std::env::var("DATABASE_URL")
+        .map_err(|_| CustomError::Anyhow(anyhow!("DATABASE_URL must be set")))?;
+    let pool = SqlitePool::connect(&database_url).await
+        .map_err(|e| CustomError::Anyhow(anyhow!("Failed to create SQLite pool: {}", e)))?;
+    Ok(pool)
 }
 
 fn file_open(path: &str) -> Result<File, CustomError> {
@@ -49,32 +66,50 @@ fn csv_parse(file: File) -> Result<Vec<Record>, CustomError> {
     Ok((records))
 }
 
+async fn initialize_desc_table_by_records(records: Vec<Record>) -> Result<(), CustomError> {
+    let pool = get_sqlite_pool().await?;
+
+    // if data is already present, delete it
+    sqlx::query("DELETE FROM desc")
+        .execute(&pool)
+        .await
+        .map_err(|e| CustomError::Anyhow(anyhow!("Failed to delete from desc: {}", e)))?;
+
+    // insert new data
+    for record in records {
+        sqlx::query("INSERT INTO desc (source_id, title, description, published_at, actual_start_at) VALUES (?, ?, ?, ?, ?)")
+            .bind(&record.source_id)
+            .bind(&record.title)
+            .bind(&record.description)
+            .bind(&record.published_at)
+            .bind(&record.actual_start_at)
+            .execute(&pool)
+            .await
+            .map_err(|e| CustomError::Anyhow(anyhow!("Failed to insert into desc: {}", e)))?;
+    }
+    Ok(())
+}
+
+#[tauri::command]
 fn load_csv(path: &str) -> Result<(), CustomError> {
     let file = file_open(path)
         .context("Failed to open file")?;
     let records = csv_parse(file)
     .context("Failed to parse CSV")?;
 
-    for record in records {
-        println!("{} : {}", record.source_id, record.title);
-    }
+    // initialize the desc table with the records
+    tokio::runtime::Runtime::new()
+        .unwrap()
+        .block_on(initialize_desc_table_by_records(records))
+        .map_err(|e| CustomError::Anyhow(anyhow!("Failed to initialize desc table: {}", e)))?;
     Ok(())
-}
-
-async fn create_sqlite_pool() -> Result<sqlx::SqlitePool, CustomError> {
-    let database_url = std::env::var("DATABASE_URL")
-        .context("DATABASE_URL must be set")?;
-    let pool = SqlitePool::connect(&database_url).await
-        .map_err(|e| CustomError::Anyhow(anyhow!("Failed to create SQLite pool: {}", e)))?;
-    Ok(pool)
 }
 
 #[tokio::main]
 async fn main() {
     dotenv().expect("Failed to load .env file");
-    create_sqlite_pool().await.expect("Failed to create SQLite pool");
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![greet])
+        .invoke_handler(tauri::generate_handler![greet, load_csv])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
