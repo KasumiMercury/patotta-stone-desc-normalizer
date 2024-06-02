@@ -79,9 +79,11 @@ fn load_csv(path: &str) -> Result<(), CustomError> {
     let records = csv_parse(file)
     .context("Failed to parse CSV")?;
 
-    for record in records {
-        println!("{} : {}", record.source_id, record.title);
-    }
+    // initialize the desc table with the records
+    tokio::runtime::Runtime::new()
+        .unwrap()
+        .block_on(initialize_desc_table_by_records(records))
+        .map_err(|e| CustomError::Anyhow(anyhow!("Failed to initialize desc table: {}", e)))?;
     Ok(())
 }
 
