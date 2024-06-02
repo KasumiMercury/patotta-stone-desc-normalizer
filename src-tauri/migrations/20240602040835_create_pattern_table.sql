@@ -5,7 +5,7 @@ CREATE TABLE pattern (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   hash TEXT NOT NULL,
   text TEXT NOT NULL,
-  length_line INTEGER NOT NULL,
+  length_line INTEGER NOT NULL
 );
 
 -- Add unique constraint to pattern table
