@@ -49,6 +49,36 @@ fn csv_parse(file: File) -> Result<Vec<Record>, CustomError> {
     Ok((records))
 }
 
+async fn initialize_desc_table_by_records(pool: &SqlitePool, records: Vec<Record>) -> Result<(), CustomError> {
+    let mut conn = pool.acquire().await
+        .map_err(|e| CustomError::Anyhow(anyhow!("Failed to acquire connection: {}", e)))?;
+
+    // if data is already present, delete it
+    sqlx::query("DELETE FROM desc")
+        .execute(&mut conn)
+        .await
+        .map_err(|e| CustomError::Anyhow(anyhow!("Failed to delete records: {}", e)))?;
+
+    // initialize the table with the new data
+    for record in records {
+        sqlx::query(
+            r#"
+            INSERT INTO desc (source_id, title, description, published_at, actual_start_at)
+            VALUES (?, ?, ?, ?, ?)
+            "#
+        )
+        .bind(record.source_id)
+        .bind(record.title)
+        .bind(record.description)
+        .bind(record.published_at)
+        .bind(record.actual_start_at)
+        .execute(&mut conn)
+        .await
+        .map_err(|e| CustomError::Anyhow(anyhow!("Failed to insert record: {}", e)))?;
+    }
+    Ok(())
+}
+
 fn load_csv(path: &str) -> Result<(), CustomError> {
     let file = file_open(path)
         .context("Failed to open file")?;
