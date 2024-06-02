@@ -15,17 +15,6 @@ use serde::Deserialize;
 
 mod custom_error;
 
-static POOL: Lazy<Mutex<SqlitePool>> = Lazy::new(|| {
-    // load .env file
-    dotenv().expect("Failed to load .env file");
-    // create SQLite pool
-    let pool = match create_sqlite_pool() {
-        Ok(pool) => pool,
-        Err(e) => panic!("Failed to create SQLite pool: {}", e)
-    };
-    Mutex::new(pool)
-});
-
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
 fn greet(name: &str) -> String {
@@ -62,35 +51,9 @@ fn csv_parse(file: File) -> Result<Vec<Record>, CustomError> {
     Ok((records))
 }
 
-async fn initialize_desc_table_by_records(pool: &SqlitePool, records: Vec<Record>) -> Result<(), CustomError> {
-    let mut conn = pool.acquire().await
-        .map_err(|e| CustomError::Anyhow(anyhow!("Failed to acquire connection: {}", e)))?;
-
-    // if data is already present, delete it
-    sqlx::query("DELETE FROM desc")
-        .execute(&mut conn)
-        .await
-        .map_err(|e| CustomError::Anyhow(anyhow!("Failed to delete records: {}", e)))?;
-
-    // initialize the table with the new data
-    for record in records {
-        sqlx::query(
-            r#"
-            INSERT INTO desc (source_id, title, description, published_at, actual_start_at)
-            VALUES (?, ?, ?, ?, ?)
-            "#
-        )
-        .bind(record.source_id)
-        .bind(record.title)
-        .bind(record.description)
-        .bind(record.published_at)
-        .bind(record.actual_start_at)
-        .execute(&mut conn)
-        .await
-        .map_err(|e| CustomError::Anyhow(anyhow!("Failed to insert record: {}", e)))?;
-    }
-    Ok(())
-}
+// async fn initialize_desc_table_by_records(records: Vec<Record>) -> Result<(), CustomError> {
+//     Ok(())
+// }
 
 fn load_csv(path: &str) -> Result<(), CustomError> {
     let file = file_open(path)
@@ -115,7 +78,6 @@ async fn create_sqlite_pool() -> Result<SqlitePool, CustomError> {
 #[tokio::main]
 async fn main() {
     dotenv().expect("Failed to load .env file");
-    create_sqlite_pool().await.expect("Failed to create SQLite pool");
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![greet])
         .run(tauri::generate_context!())
