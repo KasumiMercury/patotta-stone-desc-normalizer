@@ -7,6 +7,7 @@ use dotenvy::dotenv;
 use serde::Deserialize;
 use sqlx::sqlite::SqlitePool;
 use std::fs::File;
+use tauri::Manager;
 
 mod custom_error;
 
@@ -110,6 +111,11 @@ fn main() {
 
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![greet, load_csv])
+        .setup(|app| {
+            app.manage(pool);
+            Ok(())
+        }
+        )
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
