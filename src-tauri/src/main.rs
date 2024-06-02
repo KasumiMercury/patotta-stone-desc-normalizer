@@ -2,6 +2,8 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use std::fs::File;
+use std::sync::Mutex;
+use once_cell::sync::Lazy;
 
 use anyhow::{anyhow, Context as _, Result};
 use dotenvy::dotenv;
@@ -12,6 +14,14 @@ use custom_error::CustomError;
 use serde::Deserialize;
 
 mod custom_error;
+
+static POOL: Lazy<Mutex<SqlitePool>> = Lazy::new(|| {
+    // load .env file
+    dotenv().expect("Failed to load .env file");
+    // create SQLite pool
+    let pool = create_sqlite_pool().expect("Failed to create SQLite pool");
+    Mutex::new(pool)
+});
 
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
 #[tauri::command]
@@ -91,7 +101,7 @@ fn load_csv(path: &str) -> Result<(), CustomError> {
     Ok(())
 }
 
-async fn create_sqlite_pool() -> Result<sqlx::SqlitePool, CustomError> {
+async fn create_sqlite_pool() -> Result<SqlitePool, CustomError> {
     let database_url = std::env::var("DATABASE_URL")
         .context("DATABASE_URL must be set")?;
     let pool = SqlitePool::connect(&database_url).await
