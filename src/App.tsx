@@ -85,7 +85,10 @@ function App() {
 							<button
 								type="button"
 								className="py-2 px-4 text-xs hover:outline-neutral-100 rounded-md border-2 border-zinc-700 bg-zinc-800"
-								onClick={() => setOpenConfirmDialog(false)}
+								onClick={() => {
+									setOpenConfirmDialog(false)
+									setIsLoaded(false)
+								}}
 							>
 								No
 							</button>
