@@ -4,6 +4,7 @@ import "./App.css";
 
 function App() {
 	const [filePath, setFilePath] = useState("");
+	const [isLoaded, setIsLoaded] = useState(false);
 
 	function openLoadDialog() {
 		open({
@@ -22,6 +23,7 @@ function App() {
 				return;
 			}
 			setFilePath(res);
+			setIsLoaded(true);
 		});
 	}
 
@@ -42,9 +44,19 @@ function App() {
 					Export
 				</button>
 			</div>
-			<h1 className="text-xl">Welcome to Tauri!</h1>
-
-			<p>{filePath}</p>
+			<div>
+				{isLoaded ? (
+					<div className="w-full">
+						<p>{filePath}</p>
+					</div>
+				) : (
+					<div className="w-full h-96">
+						<div className="flex justify-center items-center h-full">
+							<p className="text-lg">No data</p>
+						</div>
+					</div>
+				)}
+			</div>
 		</div>
 	);
 }
