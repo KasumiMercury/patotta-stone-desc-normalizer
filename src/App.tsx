@@ -32,7 +32,7 @@ function App() {
 
 	async function loadCSV() {
 		// load csv file
-		await invoke("load_csv", { file_path: filePath })
+		await invoke("load_csv", { path: filePath })
 	}
 
 	function  loadFile() {
