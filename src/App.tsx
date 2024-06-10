@@ -1,11 +1,13 @@
 import { open } from "@tauri-apps/api/dialog";
 import { useState } from "react";
 import "./App.css";
+import {invoke} from "@tauri-apps/api/tauri";
 
 function App() {
 	const [filePath, setFilePath] = useState("");
 	const [isLoaded, setIsLoaded] = useState(false);
 	const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
+	const [error, setError] = useState("")
 
 	function openLoadDialog() {
 		open({
@@ -28,12 +30,24 @@ function App() {
 		});
 	}
 
+	async function loadCSV() {
+		// load csv file
+		await invoke("load_csv", { path: filePath })
+	}
+
 	function  loadFile() {
 		// load file
 		// TODO: implement load method
-
-		setIsLoaded(true)
-		setOpenConfirmDialog(false)
+		loadCSV().then(() =>{
+			setIsLoaded(true)
+			setOpenConfirmDialog(false)
+			}
+		).catch((err) => {
+			console.error(err)
+			setError("Error: can't load file")
+			setIsLoaded(false)
+			setOpenConfirmDialog(false)
+		})
 	}
 
 	return (
@@ -54,6 +68,11 @@ function App() {
 				</button>
 			</div>
 			<div>
+				{error && (
+					<div className="w-full">
+						<p className="text-red-500">{error}</p>
+					</div>
+				)}
 				{isLoaded ? (
 					<div className="w-full">
 						<p>{filePath}</p>
