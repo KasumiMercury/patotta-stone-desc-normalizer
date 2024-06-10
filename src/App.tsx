@@ -37,8 +37,11 @@ function App() {
 	function  loadFile() {
 		// load file
 		// TODO: implement load method
-		setIsLoaded(true)
-		setOpenConfirmDialog(false)
+		loadCSV().then(() =>{
+			setIsLoaded(true)
+			setOpenConfirmDialog(false)
+			}
+		)
 	}
 
 	return (
