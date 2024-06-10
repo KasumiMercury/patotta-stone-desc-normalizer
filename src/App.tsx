@@ -7,6 +7,7 @@ function App() {
 	const [filePath, setFilePath] = useState("");
 	const [isLoaded, setIsLoaded] = useState(false);
 	const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
+	const [error, setError] = useState("")
 
 	function openLoadDialog() {
 		open({
@@ -41,7 +42,12 @@ function App() {
 			setIsLoaded(true)
 			setOpenConfirmDialog(false)
 			}
-		)
+		).catch((err) => {
+			console.error(err)
+			setError("Error: can't load file")
+			setIsLoaded(false)
+			setOpenConfirmDialog(false)
+		})
 	}
 
 	return (
@@ -62,6 +68,11 @@ function App() {
 				</button>
 			</div>
 			<div>
+				{error && (
+					<div className="w-full">
+						<p className="text-red-500">{error}</p>
+					</div>
+				)}
 				{isLoaded ? (
 					<div className="w-full">
 						<p>{filePath}</p>
