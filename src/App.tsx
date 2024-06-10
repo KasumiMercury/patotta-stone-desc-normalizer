@@ -4,6 +4,8 @@ import "./App.css";
 
 function App() {
 	const [filePath, setFilePath] = useState("");
+	const [isLoaded, setIsLoaded] = useState(false);
+	const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
 
 	function openLoadDialog() {
 		open({
@@ -22,11 +24,20 @@ function App() {
 				return;
 			}
 			setFilePath(res);
+			setOpenConfirmDialog(true);
 		});
 	}
 
+	function  loadFile() {
+		// load file
+		// TODO: implement load method
+
+		setIsLoaded(true)
+		setOpenConfirmDialog(false)
+	}
+
 	return (
-		<div className="container">
+		<div className="m-0 flex justify-center text-center pt-6 flex-col">
 			<div className="w-full flex justify-end gap-2">
 				<button
 					type="button"
@@ -42,9 +53,49 @@ function App() {
 					Export
 				</button>
 			</div>
-			<h1 className="text-xl">Welcome to Tauri!</h1>
+			<div>
+				{isLoaded ? (
+					<div className="w-full">
+						<p>{filePath}</p>
+					</div>
+				) : (
+					<div className="w-full h-96">
+						<div className="flex justify-center items-center h-full">
+							<p className="text-lg">No data</p>
+						</div>
+					</div>
+				)}
+			</div>
 
-			<p>{filePath}</p>
+			{openConfirmDialog && (
+				<div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center">
+					<div className="bg-zinc-800 p-4 rounded-md border border-zinc-600 gap-y-6 flex flex-col">
+						<div className="flex flex-col w-fit">
+							<p>Do you want to load this file?</p>
+							<p className="text-xs">{filePath}</p>
+						</div>
+						<div className="flex justify-center gap-2">
+							<button
+								type="button"
+								className="py-2 px-4 text-xs hover:outline-neutral-100 rounded-md border-2 border-zinc-700 bg-zinc-800"
+								onClick={loadFile}
+							>
+								Yes
+							</button>
+							<button
+								type="button"
+								className="py-2 px-4 text-xs hover:outline-neutral-100 rounded-md border-2 border-zinc-700 bg-zinc-800"
+								onClick={() => {
+									setOpenConfirmDialog(false)
+									setIsLoaded(false)
+								}}
+							>
+								No
+							</button>
+						</div>
+					</div>
+				</div>
+			)}
 		</div>
 	);
 }
