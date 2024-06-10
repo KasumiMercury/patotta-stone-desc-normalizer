@@ -1,6 +1,7 @@
 import { open } from "@tauri-apps/api/dialog";
 import { useState } from "react";
 import "./App.css";
+import {invoke} from "@tauri-apps/api/tauri";
 
 function App() {
 	const [filePath, setFilePath] = useState("");
@@ -28,10 +29,14 @@ function App() {
 		});
 	}
 
+	async function loadCSV() {
+		// load csv file
+		await invoke("load_csv", { file_path: filePath })
+	}
+
 	function  loadFile() {
 		// load file
 		// TODO: implement load method
-
 		setIsLoaded(true)
 		setOpenConfirmDialog(false)
 	}
