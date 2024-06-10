@@ -71,14 +71,14 @@ async fn initialize_desc_table_by_records(
     records: Vec<Record>,
 ) -> Result<(), CustomError> {
     // if data is already present, delete it
-    sqlx::query("DELETE FROM desc")
+    sqlx::query("DELETE FROM description")
         .execute(&*pool)
         .await
         .map_err(|e| CustomError::Anyhow(anyhow!("Failed to delete from desc: {}", e)))?;
 
     // insert new data
     for record in records {
-        sqlx::query("INSERT INTO desc (source_id, title, description, published_at, actual_start_at) VALUES (?, ?, ?, ?, ?)")
+        sqlx::query("INSERT INTO description (source_id, title, description, published_at, actual_start_at) VALUES (?, ?, ?, ?, ?)")
             .bind(&record.source_id)
             .bind(&record.title)
             .bind(&record.description)
