@@ -30,7 +30,7 @@ fn greet(name: &str) -> String {
 
 async fn get_sqlite_pool() -> Result<SqlitePool, CustomError> {
     let database_url = std::env::var("DATABASE_URL")
-        .with_context(|| "Failed to get DATABASE_URL".into())?;
+        .context("DATABASE_URL environment variable is not set")?;
     let pool = SqlitePool::connect(&database_url)
         .await
         .map_err(|e| CustomError::Anyhow(anyhow!("Failed to connect to database: {}", e)))?;
