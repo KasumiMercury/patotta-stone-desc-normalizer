@@ -37,7 +37,6 @@ function App() {
 
 	function loadFile() {
 		// load file
-		// TODO: implement load method
 		loadCSV()
 			.then(() => {
 				setIsLoaded(true);
