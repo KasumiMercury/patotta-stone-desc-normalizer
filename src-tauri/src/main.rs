@@ -1,13 +1,15 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use std::fs::File;
+
 use anyhow::{anyhow, Context as _, Result};
-use custom_error::CustomError;
 use dotenvy::dotenv;
 use serde::Deserialize;
 use sqlx::sqlite::SqlitePool;
-use std::fs::File;
 use tauri::{Manager, State};
+
+use custom_error::CustomError;
 
 mod custom_error;
 
@@ -28,18 +30,17 @@ fn greet(name: &str) -> String {
 
 async fn get_sqlite_pool() -> Result<SqlitePool, CustomError> {
     let database_url = std::env::var("DATABASE_URL")
-        .map_err(|_| CustomError::Anyhow(anyhow!("DATABASE_URL must be set")))?;
+        .with_context(|| "Failed to get DATABASE_URL".into())?;
     let pool = SqlitePool::connect(&database_url)
         .await
-        .map_err(|e| CustomError::Anyhow(anyhow!("Failed to create SQLite pool: {}", e)))?;
+        .map_err(|e| CustomError::Anyhow(anyhow!("Failed to connect to database: {}", e)))?;
 
     Ok(pool)
 }
 
 fn file_open(path: &str) -> Result<File, CustomError> {
     let file = File::open(path)
-        .map_err(|e| CustomError::Anyhow(anyhow!("File Error: {}", e)))
-        .with_context(|| format!("Failed to open file: {}", path))?;
+        .map_err(|e| CustomError::Anyhow(anyhow!("Failed to open {}: {}", path, e)))?;
     Ok(file)
 }
 
@@ -59,8 +60,7 @@ fn csv_parse(file: File) -> Result<Vec<Record>, CustomError> {
 
     for result in rdr.deserialize() {
         let record: Record = result
-            .map_err(|e| CustomError::Anyhow(anyhow!("CSV Error: {}", e)))
-            .with_context(|| "Failed to parse CSV record")?;
+            .map_err(|e| CustomError::Anyhow(anyhow!("Failed to parse CSV: {}", e)))?;
         records.push(record);
     }
     Ok(records)
@@ -93,8 +93,8 @@ async fn initialize_desc_table_by_records(
 
 #[tauri::command]
 async fn load_csv(pool: State<'_, SqlitePool>, path: &str) -> Result<(), CustomError> {
-    let file = file_open(path).context("Failed to open file")?;
-    let records = csv_parse(file).context("Failed to parse CSV")?;
+    let file = file_open(path).with_context("Failed to open file".into())?;
+    let records = csv_parse(file).with_context("Failed to parse CSV".into())?;
 
     // initialize the desc table with the records
     initialize_desc_table_by_records(&*pool, records).await?;
