@@ -44,7 +44,7 @@ function App() {
 			})
 			.catch((err) => {
 				console.error(err);
-				setError("Error: can't load file");
+				setError(err);
 				setIsLoaded(false);
 				setOpenConfirmDialog(false);
 			});
