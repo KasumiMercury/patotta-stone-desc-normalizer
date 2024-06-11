@@ -1,5 +1,5 @@
-import { open } from "@tauri-apps/api/dialog";
-import { useState } from "react";
+import {open} from "@tauri-apps/api/dialog";
+import {useState} from "react";
 import "./App.css";
 import {invoke} from "@tauri-apps/api/tauri";
 
@@ -7,7 +7,7 @@ function App() {
 	const [filePath, setFilePath] = useState("");
 	const [isLoaded, setIsLoaded] = useState(false);
 	const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
-	const [error, setError] = useState("")
+	const [error, setError] = useState("");
 
 	function openLoadDialog() {
 		open({
@@ -32,22 +32,23 @@ function App() {
 
 	async function loadCSV() {
 		// load csv file
-		await invoke("load_csv", { path: filePath })
+		await invoke("load_csv", { path: filePath });
 	}
 
-	function  loadFile() {
+	function loadFile() {
 		// load file
 		// TODO: implement load method
-		loadCSV().then(() =>{
-			setIsLoaded(true)
-			setOpenConfirmDialog(false)
-			}
-		).catch((err) => {
-			console.error(err)
-			setError("Error: can't load file")
-			setIsLoaded(false)
-			setOpenConfirmDialog(false)
-		})
+		loadCSV()
+			.then(() => {
+				setIsLoaded(true);
+				setOpenConfirmDialog(false);
+			})
+			.catch((err) => {
+				console.error(err);
+				setError("Error: can't load file");
+				setIsLoaded(false);
+				setOpenConfirmDialog(false);
+			});
 	}
 
 	return (
@@ -105,8 +106,8 @@ function App() {
 								type="button"
 								className="py-2 px-4 text-xs hover:outline-neutral-100 rounded-md border-2 border-zinc-700 bg-zinc-800"
 								onClick={() => {
-									setOpenConfirmDialog(false)
-									setIsLoaded(false)
+									setOpenConfirmDialog(false);
+									setIsLoaded(false);
 								}}
 							>
 								No
