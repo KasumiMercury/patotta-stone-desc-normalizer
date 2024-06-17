@@ -1,10 +1,13 @@
 use std::fs::File;
-use std::io::Write;
 use anyhow::anyhow;
 use serde::Deserialize;
 use sqlx::SqlitePool;
-use tempfile::TempDir;
 use crate::custom_error::CustomError;
+
+#[cfg(test)]
+use tempfile::TempDir;
+#[cfg(test)]
+use std::io::Write;
 
 pub(crate) fn file_open(path: &str) -> Result<File, CustomError> {
     let file = File::open(path)
