@@ -6,7 +6,9 @@ use std::fs::File;
 use anyhow::{anyhow, Context as _, Result};
 use dotenvy::dotenv;
 use serde::Deserialize;
+use serde::ser::SerializeStruct;
 use sqlx::sqlite::SqlitePool;
+use sqlx::types::chrono;
 use tauri::{Manager, State};
 
 use custom_error::CustomError;
@@ -99,6 +101,42 @@ async fn load_csv(pool: State<'_, SqlitePool>, path: &str) -> Result<(), CustomE
     // initialize the desc table with the records
     initialize_desc_table_by_records(&*pool, records).await?;
     Ok(())
+}
+
+impl serde::Serialize for Record {
+fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        let mut state = serializer.serialize_struct("Record", 5)?;
+        state.serialize_field("source_id", &self.source_id)?;
+        state.serialize_field("title", &self.title)?;
+        state.serialize_field("description", &self.description)?;
+        state.serialize_field("published_at", &self.published_at)?;
+        state.serialize_field("actual_start_at", &self.actual_start_at)?;
+        state.end()
+    }
+}
+
+#[derive(Debug)]
+pub struct Description {
+    pub source_id: String,
+    pub title: String,
+    pub description: String,
+    pub published_at: chrono::NaiveDateTime,
+    pub actual_start_at: chrono::NaiveDateTime,
+}
+
+#[tauri::command]
+async fn get_description_by_source_id(pool: State<'_, SqlitePool>, source_id: &str) -> Result<Description, CustomError> {
+    let desc = sqlx::query_as!(
+        Description,
+        r#"SELECT * FROM description WHERE source_id = ?"#,
+        source_id
+    )
+    .fetch_one(&*pool).await.map_err(|e| CustomError::Anyhow(anyhow!("Failed to fetch from desc: {}", e)))?;
+
+    Ok(desc)
 }
 
 fn main() {
