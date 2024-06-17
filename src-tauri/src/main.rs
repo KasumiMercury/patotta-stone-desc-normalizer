@@ -118,13 +118,15 @@ fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
 }
 
 #[tauri::command]
-async fn get_description_by_source_id(pool: State<'_, SqlitePool>, source_id: &str) -> Result<String, CustomError> {
-    let record = sqlx::query_as::<_, Record>("SELECT * FROM description WHERE source_id = ?")
-        .bind(source_id)
-        .fetch_one(&*pool)
-        .await
-        .map_err(|e| CustomError::Anyhow(anyhow!("Failed to fetch record: {}", e)))?;
-    Ok(serde_json::to_string(&record).map_err(|e| CustomError::Anyhow(anyhow!("Failed to serialize record: {}", e)))?)
+async fn get_description_by_source_id(pool: State<'_, SqlitePool>, source_id: &str) -> Result<Record, CustomError> {
+    let desc = sqlx::query_as!(
+        Record,
+        r#"SELECT * FROM description WHERE source_id = ?"#,
+        source_id
+    )
+    .fetch_one(&*pool).await.map_err(|e| CustomError::Anyhow(anyhow!("Failed to fetch from desc: {}", e)))?;
+
+    Ok()
 }
 
 fn main() {
