@@ -8,6 +8,8 @@ use dotenvy::dotenv;
 use serde::Deserialize;
 use serde::ser::SerializeStruct;
 use sqlx::sqlite::SqlitePool;
+use sqlx::types::chrono;
+use sqlx::types::chrono::Local;
 use tauri::{Manager, State};
 
 use custom_error::CustomError;
@@ -117,16 +119,25 @@ fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     }
 }
 
+#[derive(Debug)]
+pub struct Description {
+    pub source_id: String,
+    pub title: String,
+    pub description: String,
+    pub published_at: chrono::DateTime<Local>,
+    pub actual_start_at: chrono::DateTime<Local>,
+}
+
 #[tauri::command]
-async fn get_description_by_source_id(pool: State<'_, SqlitePool>, source_id: &str) -> Result<Record, CustomError> {
+async fn get_description_by_source_id(pool: State<'_, SqlitePool>, source_id: &str) -> Result<Description, CustomError> {
     let desc = sqlx::query_as!(
-        Record,
+        Description,
         r#"SELECT * FROM description WHERE source_id = ?"#,
         source_id
     )
     .fetch_one(&*pool).await.map_err(|e| CustomError::Anyhow(anyhow!("Failed to fetch from desc: {}", e)))?;
 
-    Ok()
+    Ok(desc)
 }
 
 fn main() {
