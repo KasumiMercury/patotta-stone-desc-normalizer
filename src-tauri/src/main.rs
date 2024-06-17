@@ -39,60 +39,13 @@ async fn get_sqlite_pool() -> Result<SqlitePool, CustomError> {
     Ok(pool)
 }
 
-#[derive(Deserialize)]
-struct Record {
-    source_id: String,
-    title: String,
-    description: String,
-    published_at: String,
-    actual_start_at: String,
-}
-
-fn csv_parse(file: File) -> Result<Vec<Record>, CustomError> {
-    let mut rdr = csv::Reader::from_reader(file);
-
-    let mut records = Vec::new();
-
-    for result in rdr.deserialize() {
-        let record: Record = result
-            .map_err(|e| CustomError::Anyhow(anyhow!("Failed to parse CSV: {}", e)))?;
-        records.push(record);
-    }
-    Ok(records)
-}
-
-async fn initialize_desc_table_by_records(
-    pool: &SqlitePool,
-    records: Vec<Record>,
-) -> Result<(), CustomError> {
-    // if data is already present, delete it
-    sqlx::query("DELETE FROM description")
-        .execute(&*pool)
-        .await
-        .map_err(|e| CustomError::Anyhow(anyhow!("Failed to delete from desc: {}", e)))?;
-
-    // insert new data
-    for record in records {
-        sqlx::query("INSERT INTO description (source_id, title, description, published_at, actual_start_at) VALUES (?, ?, ?, ?, ?)")
-            .bind(&record.source_id)
-            .bind(&record.title)
-            .bind(&record.description)
-            .bind(&record.published_at)
-            .bind(&record.actual_start_at)
-            .execute(&*pool)
-            .await
-            .map_err(|e| CustomError::Anyhow(anyhow!("Failed to insert into desc: {}", e)))?;
-    }
-    Ok(())
-}
-
 #[tauri::command]
 async fn load_csv(pool: State<'_, SqlitePool>, path: &str) -> Result<(), CustomError> {
     let file = load::file_open(path).context("Failed to open file")?;
-    let records = csv_parse(file).context("Failed to parse CSV")?;
+    let records = load::csv_parse(file).context("Failed to parse CSV")?;
 
     // initialize the desc table with the records
-    initialize_desc_table_by_records(&*pool, records).await?;
+    load::initialize_desc_table_by_records(&*pool, records).await?;
     Ok(())
 }
 
