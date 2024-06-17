@@ -9,7 +9,7 @@ use tempfile::TempDir;
 #[cfg(test)]
 use std::io::Write;
 
-pub(crate) fn file_open(path: &str) -> Result<File, CustomError> {
+pub(super) fn file_open(path: &str) -> Result<File, CustomError> {
     let file = File::open(path)
         .map_err(|e| CustomError::Anyhow(anyhow!("Failed to open {}: {}", path, e)))?;
     Ok(file)
@@ -53,7 +53,7 @@ pub(crate) struct Record {
     actual_start_at: String,
 }
 
-pub(crate) fn csv_parse(file: File) -> anyhow::Result<Vec<Record>, CustomError> {
+pub(super) fn csv_parse(file: File) -> anyhow::Result<Vec<Record>, CustomError> {
     let mut rdr = csv::Reader::from_reader(file);
 
     let mut records = Vec::new();
@@ -67,7 +67,7 @@ pub(crate) fn csv_parse(file: File) -> anyhow::Result<Vec<Record>, CustomError> 
 }
 
 
-pub(crate) async fn initialize_desc_table_by_records(
+pub(super) async fn initialize_desc_table_by_records(
     pool: &SqlitePool,
     records: Vec<Record>,
 ) -> anyhow::Result<(), CustomError> {
