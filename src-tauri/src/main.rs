@@ -103,21 +103,6 @@ async fn load_csv(pool: State<'_, SqlitePool>, path: &str) -> Result<(), CustomE
     Ok(())
 }
 
-impl serde::Serialize for Record {
-fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: serde::Serializer,
-    {
-        let mut state = serializer.serialize_struct("Record", 5)?;
-        state.serialize_field("source_id", &self.source_id)?;
-        state.serialize_field("title", &self.title)?;
-        state.serialize_field("description", &self.description)?;
-        state.serialize_field("published_at", &self.published_at)?;
-        state.serialize_field("actual_start_at", &self.actual_start_at)?;
-        state.end()
-    }
-}
-
 #[derive(Debug)]
 pub struct Description {
     pub source_id: String,
