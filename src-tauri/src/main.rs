@@ -4,7 +4,6 @@
 
 use anyhow::{anyhow, Context as _, Result};
 use dotenvy::dotenv;
-use serde::Deserialize;
 use sqlx::sqlite::SqlitePool;
 use tauri::{Manager, State};
 
