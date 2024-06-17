@@ -14,6 +14,7 @@ use tauri::{Manager, State};
 use custom_error::CustomError;
 
 mod custom_error;
+mod load;
 
 impl serde::Serialize for CustomError {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
@@ -38,12 +39,6 @@ async fn get_sqlite_pool() -> Result<SqlitePool, CustomError> {
         .map_err(|e| CustomError::Anyhow(anyhow!("Failed to connect to database: {}", e)))?;
 
     Ok(pool)
-}
-
-fn file_open(path: &str) -> Result<File, CustomError> {
-    let file = File::open(path)
-        .map_err(|e| CustomError::Anyhow(anyhow!("Failed to open {}: {}", path, e)))?;
-    Ok(file)
 }
 
 #[derive(Deserialize)]

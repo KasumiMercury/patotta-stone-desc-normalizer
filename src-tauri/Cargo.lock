@@ -2138,6 +2138,7 @@ dependencies = [
  "tauri",
  "tauri-build",
  "tauri-plugin-sql",
+ "tempfile",
  "thiserror",
  "tokio",
 ]
