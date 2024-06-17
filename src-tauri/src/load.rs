@@ -11,7 +11,7 @@ pub(crate) fn file_open(path: &str) -> Result<File, CustomError> {
 }
 
 #[test]
-fn test_file_open() {
+fn test_file_open_success() {
     // create a temporary file
     let dir = TempDir::new().unwrap();
     let path = dir.path().join("test_file_open.csv");
@@ -27,5 +27,14 @@ fn test_file_open() {
 
     // cleanup
     std::fs::remove_file(path).unwrap();
+}
+
+#[test]
+fn test_file_open_failure() {
+    // open the file test
+    let file = file_open("non_existent_file.csv");
+
+    // check if the file is opened
+    assert!(file.is_err());
 }
 
