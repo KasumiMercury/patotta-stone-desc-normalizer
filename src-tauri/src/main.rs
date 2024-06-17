@@ -9,7 +9,6 @@ use serde::Deserialize;
 use serde::ser::SerializeStruct;
 use sqlx::sqlite::SqlitePool;
 use sqlx::types::chrono;
-use sqlx::types::chrono::Local;
 use tauri::{Manager, State};
 
 use custom_error::CustomError;
@@ -124,8 +123,8 @@ pub struct Description {
     pub source_id: String,
     pub title: String,
     pub description: String,
-    pub published_at: chrono::DateTime<Local>,
-    pub actual_start_at: chrono::DateTime<Local>,
+    pub published_at: chrono::NaiveDateTime,
+    pub actual_start_at: chrono::NaiveDateTime,
 }
 
 #[tauri::command]
