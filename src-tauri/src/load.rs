@@ -45,7 +45,7 @@ fn test_file_open_failure() {
 
 
 #[derive(Deserialize)]
-pub struct Record {
+pub(crate) struct Record {
     source_id: String,
     title: String,
     description: String,
