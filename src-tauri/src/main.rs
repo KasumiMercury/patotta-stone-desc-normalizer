@@ -6,9 +6,7 @@ use std::fs::File;
 use anyhow::{anyhow, Context as _, Result};
 use dotenvy::dotenv;
 use serde::Deserialize;
-use serde::ser::SerializeStruct;
 use sqlx::sqlite::SqlitePool;
-use sqlx::types::chrono;
 use tauri::{Manager, State};
 
 use custom_error::CustomError;
@@ -90,7 +88,7 @@ async fn initialize_desc_table_by_records(
 
 #[tauri::command]
 async fn load_csv(pool: State<'_, SqlitePool>, path: &str) -> Result<(), CustomError> {
-    let file = file_open(path).context("Failed to open file")?;
+    let file = load::file_open(path).context("Failed to open file")?;
     let records = csv_parse(file).context("Failed to parse CSV")?;
 
     // initialize the desc table with the records
@@ -103,15 +101,15 @@ pub struct Description {
     pub source_id: String,
     pub title: String,
     pub description: String,
-    pub published_at: chrono::NaiveDateTime,
-    pub actual_start_at: chrono::NaiveDateTime,
+    pub published_at: String,
+    pub actual_start_at: String,
 }
 
 #[tauri::command]
 async fn get_description_by_source_id(pool: State<'_, SqlitePool>, source_id: &str) -> Result<Description, CustomError> {
     let desc = sqlx::query_as!(
         Description,
-        r#"SELECT * FROM description WHERE source_id = ?"#,
+        r#"SELECT SOURCE_ID, TITLE, DESCRIPTION, PUBLISHED_AT, ACTUAL_START_AT FROM description WHERE SOURCE_ID = ?"#,
         source_id
     )
     .fetch_one(&*pool).await.map_err(|e| CustomError::Anyhow(anyhow!("Failed to fetch from desc: {}", e)))?;
