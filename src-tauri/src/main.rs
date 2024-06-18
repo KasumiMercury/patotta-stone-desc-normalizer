@@ -2,8 +2,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 
-use std::str::FromStr;
-
 use anyhow::{anyhow, Context as _, Result};
 use dotenvy::dotenv;
 use sqlx::sqlite::SqlitePool;
@@ -52,6 +50,7 @@ async fn load_csv(pool: State<'_, SqlitePool>, path: &str) -> Result<(), CustomE
 }
 
 #[derive(Debug)]
+#[allow(dead_code)]
 struct Description {
     pub id: i32,
     pub source_id: String,
@@ -62,18 +61,10 @@ struct Description {
 }
 
 #[tauri::command]
-async fn get_description_by_source_id(mut pool: State<'_, SqlitePool>, source_id: &str) -> Result<Description, CustomError> {
+async fn get_description_by_source_id( _pool: State<'_, SqlitePool>, _source_id: &str) -> Result<String, CustomError> {
     // TODO: implement select query to get description by source_id
     // dummy description
-    let desc = Description {
-        id: 1,
-        source_id: "source_id".to_string(),
-        title: "title".to_string(),
-        description: "description".to_string(),
-        published_at: "published_at".to_string(),
-        actual_start_at: "actual_start_at".to_string(),
-    };
-    Ok(desc)
+    Ok("This is a dummy description".to_string())
 }
 
 fn main() {
