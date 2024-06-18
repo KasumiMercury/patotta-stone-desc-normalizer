@@ -83,7 +83,7 @@ fn main() {
     let pool = block_on(get_sqlite_pool()).expect("Failed to create SQLite pool");
 
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![greet, load_csv])
+        .invoke_handler(tauri::generate_handler![greet, load_csv, get_description_by_source_id])
         .setup(|app| {
             app.manage(pool);
             Ok(())
