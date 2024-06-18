@@ -1,0 +1,37 @@
+name: 'test on pull request'
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+
+defaults:
+  run:
+    working-directory: src-tauri
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set Toolchain
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: stable
+          components: clippy, rustfmt
+      - name: Run cargo check
+        run: cargo check
+      - name: Run clippy
+        run: cargo clippy -- -D warnings
+      - name: Run rustfmt
+        run: cargo fmt --all -- --check
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set Toolchain
+        uses: dtolnay/rust-toolchain@stable
+      - name: Run tests
+        run: cargo test
