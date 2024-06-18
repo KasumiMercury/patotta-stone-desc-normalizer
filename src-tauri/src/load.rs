@@ -39,7 +39,7 @@ pub(super) async fn initialize_desc_table_by_records(
 ) -> anyhow::Result<(), CustomError> {
     // if data is already present, delete it
     sqlx::query("DELETE FROM description")
-        .execute(&*pool)
+        .execute(pool)
         .await
         .map_err(|e| CustomError::Anyhow(anyhow!("Failed to delete from desc: {}", e)))?;
 
@@ -51,7 +51,7 @@ pub(super) async fn initialize_desc_table_by_records(
             .bind(&record.description)
             .bind(&record.published_at)
             .bind(&record.actual_start_at)
-            .execute(&*pool)
+            .execute(pool)
             .await
             .map_err(|e| CustomError::Anyhow(anyhow!("Failed to insert into desc: {}", e)))?;
     }

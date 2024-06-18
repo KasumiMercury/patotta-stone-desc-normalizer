@@ -45,7 +45,7 @@ async fn load_csv(pool: State<'_, SqlitePool>, path: &str) -> Result<(), CustomE
     let records = load::csv_parse(file).context("Failed to parse CSV")?;
 
     // initialize the desc table with the records
-    load::initialize_desc_table_by_records(&*pool, records).await?;
+    load::initialize_desc_table_by_records(&pool, records).await?;
     Ok(())
 }
 
