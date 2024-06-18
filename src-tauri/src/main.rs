@@ -52,7 +52,8 @@ async fn load_csv(pool: State<'_, SqlitePool>, path: &str) -> Result<(), CustomE
 }
 
 #[derive(Debug)]
-pub struct Description {
+struct Description {
+    pub id: i32,
     pub source_id: String,
     pub title: String,
     pub description: String,
@@ -61,14 +62,17 @@ pub struct Description {
 }
 
 #[tauri::command]
-async fn get_description_by_source_id(pool: State<'_, SqlitePool>, source_id: &str) -> Result<Description, CustomError> {
-    let desc = sqlx::query_as!(
-        Description,
-        r#"SELECT SOURCE_ID, TITLE, DESCRIPTION, PUBLISHED_AT, ACTUAL_START_AT FROM description WHERE SOURCE_ID = ?"#,
-        source_id
-    )
-    .fetch_one(&*pool).await.map_err(|e| CustomError::Anyhow(anyhow!("Failed to fetch from desc: {}", e)))?;
-
+async fn get_description_by_source_id(mut pool: State<'_, SqlitePool>, source_id: &str) -> Result<Description, CustomError> {
+    // TODO: implement select query to get description by source_id
+    // dummy description
+    let desc = Description {
+        id: 1,
+        source_id: "source_id".to_string(),
+        title: "title".to_string(),
+        description: "description".to_string(),
+        published_at: "published_at".to_string(),
+        actual_start_at: "actual_start_at".to_string(),
+    };
     Ok(desc)
 }
 
