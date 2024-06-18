@@ -1,7 +1,6 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-
 use anyhow::{anyhow, Context as _, Result};
 use dotenvy::dotenv;
 use sqlx::sqlite::SqlitePool;
@@ -61,7 +60,10 @@ struct Description {
 }
 
 #[tauri::command]
-async fn get_description_by_source_id( _pool: State<'_, SqlitePool>, _source_id: &str) -> Result<String, CustomError> {
+async fn get_description_by_source_id(
+    _pool: State<'_, SqlitePool>,
+    _source_id: &str,
+) -> Result<String, CustomError> {
     // TODO: implement select query to get description by source_id
     // dummy description
     Ok("This is a dummy description".to_string())
@@ -74,7 +76,11 @@ fn main() {
     let pool = block_on(get_sqlite_pool()).expect("Failed to create SQLite pool");
 
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![greet, load_csv, get_description_by_source_id])
+        .invoke_handler(tauri::generate_handler![
+            greet,
+            load_csv,
+            get_description_by_source_id
+        ])
         .setup(|app| {
             app.manage(pool);
             Ok(())

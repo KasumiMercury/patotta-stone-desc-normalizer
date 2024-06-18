@@ -1,8 +1,8 @@
-use std::fs::File;
+use crate::custom_error::CustomError;
 use anyhow::anyhow;
 use serde::Deserialize;
 use sqlx::SqlitePool;
-use crate::custom_error::CustomError;
+use std::fs::File;
 
 pub(super) fn file_open(path: &str) -> Result<File, CustomError> {
     let file = File::open(path)
@@ -25,13 +25,12 @@ pub(super) fn csv_parse(file: File) -> anyhow::Result<Vec<Record>, CustomError> 
     let mut records = Vec::new();
 
     for result in rdr.deserialize() {
-        let record: Record = result
-            .map_err(|e| CustomError::Anyhow(anyhow!("Failed to parse CSV: {}", e)))?;
+        let record: Record =
+            result.map_err(|e| CustomError::Anyhow(anyhow!("Failed to parse CSV: {}", e)))?;
         records.push(record);
     }
     Ok(records)
 }
-
 
 pub(super) async fn initialize_desc_table_by_records(
     pool: &SqlitePool,
@@ -60,10 +59,10 @@ pub(super) async fn initialize_desc_table_by_records(
 
 #[cfg(test)]
 mod tests {
+    use crate::load::file_open;
     use std::fs::File;
     use std::io::Write;
     use tempfile::TempDir;
-    use crate::load::file_open;
 
     #[test]
     fn test_file_open_success() {
@@ -72,7 +71,9 @@ mod tests {
         let path = dir.path().join("test_file_open.csv");
 
         let mut temp_file = File::create(&path).unwrap();
-        temp_file.write_all(b"source_id,title,description,published_at,actual_start_at\n").unwrap();
+        temp_file
+            .write_all(b"source_id,title,description,published_at,actual_start_at\n")
+            .unwrap();
 
         // open the file test
         let file = file_open(path.to_str().unwrap()).unwrap();
@@ -92,5 +93,4 @@ mod tests {
         // check if the file is opened
         assert!(file.is_err());
     }
-
 }
