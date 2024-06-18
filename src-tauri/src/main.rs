@@ -2,6 +2,8 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 
+use std::str::FromStr;
+
 use anyhow::{anyhow, Context as _, Result};
 use dotenvy::dotenv;
 use sqlx::sqlite::SqlitePool;
@@ -28,9 +30,11 @@ fn greet(name: &str) -> String {
 }
 
 async fn get_sqlite_pool() -> Result<SqlitePool, CustomError> {
-    let database_url = std::env::var("DATABASE_URL")
-        .context("DATABASE_URL environment variable is not set")?;
-    let pool = SqlitePool::connect(&database_url)
+    let path = std::path::Path::new("sqlite.db");
+    let options = sqlx::sqlite::SqliteConnectOptions::new()
+        .filename(path)
+        .create_if_missing(true);
+    let pool = SqlitePool::connect_with(options)
         .await
         .map_err(|e| CustomError::Anyhow(anyhow!("Failed to connect to database: {}", e)))?;
 
