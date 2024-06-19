@@ -66,6 +66,14 @@ async fn get_description_by_source_id(
 ) -> Result<String, CustomError> {
     // TODO: implement select query to get description by source_id
     // dummy description
+    let desc = Description {
+        id: 1,
+        source_id: "source_id".to_string(),
+        title: "Title".to_string(),
+        description: "Description".to_string(),
+        published_at: "2021-01-01".to_string(),
+        actual_start_at: "2021-01-01".to_string(),
+    };
     Ok("This is a dummy description".to_string())
 }
 
