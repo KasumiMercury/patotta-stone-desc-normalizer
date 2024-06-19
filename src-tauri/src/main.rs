@@ -62,19 +62,28 @@ struct Description {
 
 #[tauri::command]
 async fn get_description_by_source_id(
-    _pool: State<'_, SqlitePool>,
-    _source_id: &str,
+    pool: State<'_, SqlitePool>,
+    source_id: &str,
 ) -> Result<String, CustomError> {
     // TODO: implement select query to get description by source_id
+    // get description by source_id from the sqlite database
+   let desc = sqlx::query_as::<_, Description>(
+        r#"
+        SELECT id, source_id, title, description, published_at, actual_start_at
+        FROM desc
+        WHERE source_id = $1
+        "#,
+    ).bind(source_id).fetch_one(&pool).await?;
+
     // dummy description
-    let desc = Description {
-        id: 1,
-        source_id: "source_id".to_string(),
-        title: "Title".to_string(),
-        description: "Description".to_string(),
-        published_at: "2021-01-01".to_string(),
-        actual_start_at: "2021-01-01".to_string(),
-    };
+    // let desc = Description {
+    //     id: 1,
+    //     source_id: "source_id".to_string(),
+    //     title: "Title".to_string(),
+    //     description: "Description".to_string(),
+    //     published_at: "2021-01-01".to_string(),
+    //     actual_start_at: "2021-01-01".to_string(),
+    // };
     // convert to JSON string
     let desc_json = serde_json::to_string(&desc)
         .map_err(|e| CustomError::Anyhow(anyhow!("Failed to serialize description: {}", e)))?;
