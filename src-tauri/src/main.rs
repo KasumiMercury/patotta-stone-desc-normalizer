@@ -73,7 +73,6 @@ async fn get_description_by_source_id_infra(
     pool: State<'_, SqlitePool>,
     source_id: &str,
 ) -> Result<Description, sqlx::Error> {
-    // TODO: implement select query to get description by source_id
     // get pool from the state
     let p = pool.clone();
     // get description by source_id from the sqlite database
