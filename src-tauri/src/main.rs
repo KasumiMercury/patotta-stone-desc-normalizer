@@ -8,7 +8,7 @@ use dotenvy::dotenv;
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use sqlx::sqlite::SqlitePool;
-use tauri::{AppHandle, Manager, Runtime, State};
+use tauri::{AppHandle, Manager, State};
 
 use custom_error::CustomError;
 
@@ -30,8 +30,15 @@ fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
 }
 
-fn app_path<R: Runtime>(app: &AppHandle<R>) -> PathBuf {
-    app.path_resolver().app_data_dir().expect("Failed to get app data directory")
+fn app_path(handle: &AppHandle) -> PathBuf {
+    // get app_dir
+    // if success, print the path
+    // if failed, expect the error
+    let app_path = handle.path_resolver().app_data_dir().expect("Failed to get app path");
+
+    println!("app path: {:?}", app_path);
+
+    app_path
 }
 
 async fn get_sqlite_pool() -> Result<SqlitePool, CustomError> {
@@ -111,6 +118,7 @@ fn main() {
         ])
         .setup(|app| {
             app.manage(pool);
+            app_path(&app.handle());
             Ok(())
         })
         .run(tauri::generate_context!())
