@@ -34,7 +34,7 @@ fn app_path(handle: &AppHandle) -> PathBuf {
     // get app_dir
     // if success, print the path
     // if failed, expect the error
-    let app_path = handle.path_resolver().app_data_dir().expect("Failed to get app path");
+    let app_path = handle.path_resolver().app_config_dir().expect("Failed to get app path");
 
     println!("app path: {:?}", app_path);
 
