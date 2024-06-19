@@ -1,12 +1,14 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use std::path::PathBuf;
+
 use anyhow::{anyhow, Context as _, Result};
 use dotenvy::dotenv;
 use serde::{Deserialize, Serialize};
-use sqlx::sqlite::SqlitePool;
 use sqlx::FromRow;
-use tauri::{Manager, State};
+use sqlx::sqlite::SqlitePool;
+use tauri::{AppHandle, Manager, Runtime, State};
 
 use custom_error::CustomError;
 
@@ -26,6 +28,10 @@ impl serde::Serialize for CustomError {
 #[tauri::command]
 fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
+}
+
+fn app_path<R: Runtime>(app: &AppHandle<R>) -> PathBuf {
+    app.path_resolver().app_data_dir().expect("Failed to get app data directory")
 }
 
 async fn get_sqlite_pool() -> Result<SqlitePool, CustomError> {
