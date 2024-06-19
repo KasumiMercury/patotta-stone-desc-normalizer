@@ -3,6 +3,7 @@
 
 use anyhow::{anyhow, Context as _, Result};
 use dotenvy::dotenv;
+use serde::{Deserialize, Serialize};
 use sqlx::sqlite::SqlitePool;
 use tauri::{Manager, State};
 
@@ -48,7 +49,7 @@ async fn load_csv(pool: State<'_, SqlitePool>, path: &str) -> Result<(), CustomE
     Ok(())
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 #[allow(dead_code)]
 struct Description {
     pub id: i32,
@@ -74,7 +75,10 @@ async fn get_description_by_source_id(
         published_at: "2021-01-01".to_string(),
         actual_start_at: "2021-01-01".to_string(),
     };
-    Ok("This is a dummy description".to_string())
+    // convert to JSON string
+    let desc_json = serde_json::to_string(&desc)
+        .map_err(|e| CustomError::Anyhow(anyhow!("Failed to serialize description: {}", e)))?;
+    Ok(desc_json)
 }
 
 fn main() {
