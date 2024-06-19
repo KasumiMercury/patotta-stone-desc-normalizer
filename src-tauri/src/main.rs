@@ -74,6 +74,7 @@ async fn get_description_by_source_id(
         WHERE source_id = $1
         "#,
     ).bind(source_id).fetch_one(&pool).await?;
+    // TODO: fix the error above (bind error)
 
     // dummy description
     // let desc = Description {
