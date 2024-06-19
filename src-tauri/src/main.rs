@@ -5,6 +5,7 @@ use anyhow::{anyhow, Context as _, Result};
 use dotenvy::dotenv;
 use serde::{Deserialize, Serialize};
 use sqlx::sqlite::SqlitePool;
+use sqlx::FromRow;
 use tauri::{Manager, State};
 
 use custom_error::CustomError;
@@ -49,7 +50,7 @@ async fn load_csv(pool: State<'_, SqlitePool>, path: &str) -> Result<(), CustomE
     Ok(())
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, FromRow)]
 #[allow(dead_code)]
 struct Description {
     pub id: i32,
@@ -62,23 +63,32 @@ struct Description {
 
 #[tauri::command]
 async fn get_description_by_source_id(
-    _pool: State<'_, SqlitePool>,
-    _source_id: &str,
+    pool: State<'_, SqlitePool>,
+    source_id: String,
 ) -> Result<String, CustomError> {
-    // TODO: implement select query to get description by source_id
-    // dummy description
-    let desc = Description {
-        id: 1,
-        source_id: "source_id".to_string(),
-        title: "Title".to_string(),
-        description: "Description".to_string(),
-        published_at: "2021-01-01".to_string(),
-        actual_start_at: "2021-01-01".to_string(),
-    };
-    // convert to JSON string
-    let desc_json = serde_json::to_string(&desc)
-        .map_err(|e| CustomError::Anyhow(anyhow!("Failed to serialize description: {}", e)))?;
-    Ok(desc_json)
+    get_description_by_source_id_infra(pool, &source_id)
+        .await
+        .map_err(|e| CustomError::Anyhow(anyhow!("Failed to get description by source_id: {}", e)))
+        .map(|desc| serde_json::to_string(&desc).unwrap())
+}
+
+async fn get_description_by_source_id_infra(
+    pool: State<'_, SqlitePool>,
+    source_id: &str,
+) -> Result<Description, sqlx::Error> {
+    // get pool from the state
+    let p = pool.clone();
+    // get description by source_id from the sqlite database
+    let desc = sqlx::query_as::<_, Description>(
+        r#"
+        SELECT * FROM desc WHERE source_id = ?
+        "#,
+    )
+    .bind(source_id)
+    .fetch_one(&*p)
+    .await?;
+
+    Ok(desc)
 }
 
 fn main() {
