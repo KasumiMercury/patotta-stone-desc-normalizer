@@ -4,8 +4,8 @@
 use anyhow::{anyhow, Context as _, Result};
 use dotenvy::dotenv;
 use serde::{Deserialize, Serialize};
-use sqlx::FromRow;
 use sqlx::sqlite::SqlitePool;
+use sqlx::FromRow;
 use tauri::{Manager, State};
 
 use custom_error::CustomError;
@@ -62,7 +62,10 @@ struct Description {
 }
 
 #[tauri::command]
-async fn get_description_by_source_id(pool: State<'_, SqlitePool>, source_id: String) -> Result<String, CustomError> {
+async fn get_description_by_source_id(
+    pool: State<'_, SqlitePool>,
+    source_id: String,
+) -> Result<String, CustomError> {
     get_description_by_source_id_infra(pool, &source_id)
         .await
         .map_err(|e| CustomError::Anyhow(anyhow!("Failed to get description by source_id: {}", e)))
