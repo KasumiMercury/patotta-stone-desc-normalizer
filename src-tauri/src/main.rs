@@ -4,6 +4,7 @@
 use anyhow::{anyhow, Context as _, Result};
 use dotenvy::dotenv;
 use serde::{Deserialize, Serialize};
+use sqlx::FromRow;
 use sqlx::sqlite::SqlitePool;
 use tauri::{Manager, State};
 
@@ -49,7 +50,7 @@ async fn load_csv(pool: State<'_, SqlitePool>, path: &str) -> Result<(), CustomE
     Ok(())
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, FromRow)]
 #[allow(dead_code)]
 struct Description {
     pub id: i32,
@@ -61,20 +62,29 @@ struct Description {
 }
 
 #[tauri::command]
-async fn get_description_by_source_id(
+async fn get_description_by_source_id(pool: State<'_, SqlitePool>, source_id: String) -> Result<String, CustomError> {
+    get_description_by_source_id_infra(pool, &source_id)
+        .await
+        .map_err(|e| CustomError::Anyhow(anyhow!("Failed to get description by source_id: {}", e)))
+        .map(|desc| serde_json::to_string(&desc).unwrap())
+}
+
+async fn get_description_by_source_id_infra(
     pool: State<'_, SqlitePool>,
     source_id: &str,
-) -> Result<String, CustomError> {
+) -> Result<Description, sqlx::Error> {
     // TODO: implement select query to get description by source_id
+    // get pool from the state
+    let p = pool.clone();
     // get description by source_id from the sqlite database
-   let desc = sqlx::query_as::<_, Description>(
+    let desc = sqlx::query_as::<_, Description>(
         r#"
-        SELECT id, source_id, title, description, published_at, actual_start_at
-        FROM desc
-        WHERE source_id = $1
+        SELECT * FROM desc WHERE source_id = ?
         "#,
-    ).bind(source_id).fetch_one(&pool).await?;
-    // TODO: fix the error above (bind error)
+    )
+    .bind(source_id)
+    .fetch_one(&*p)
+    .await?;
 
     // dummy description
     // let desc = Description {
@@ -85,10 +95,7 @@ async fn get_description_by_source_id(
     //     published_at: "2021-01-01".to_string(),
     //     actual_start_at: "2021-01-01".to_string(),
     // };
-    // convert to JSON string
-    let desc_json = serde_json::to_string(&desc)
-        .map_err(|e| CustomError::Anyhow(anyhow!("Failed to serialize description: {}", e)))?;
-    Ok(desc_json)
+    Ok(desc)
 }
 
 fn main() {
