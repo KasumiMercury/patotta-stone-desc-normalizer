@@ -6,7 +6,8 @@ use std::path::PathBuf;
 use anyhow::{anyhow, Context as _, Result};
 use dotenvy::dotenv;
 use serde::{Deserialize, Serialize};
-use sqlx::FromRow;
+use sqlx::{FromRow, Sqlite};
+use sqlx::migrate::MigrateDatabase;
 use sqlx::sqlite::SqlitePool;
 use tauri::{AppHandle, Manager, State};
 
@@ -51,8 +52,13 @@ fn db_path(mut base: PathBuf) -> String {
 }
 
 async fn initialize_sqlite(handle: AppHandle) -> Result<SqlitePool, CustomError> {
-    let path = db_path(app_path(&handle));
-    let pool = get_sqlite_pool(path).await?;
+    let data_path = app_path(&handle);
+    let db_path = db_path(data_path);
+
+    if !Sqlite::database_exists(&db_path).await.unwrap_or(false) {
+        Sqlite::create_database(&db_path).await.with_context(|| format!("Failed to create database at {}", db_path))?;
+    }
+    let pool = get_sqlite_pool(db_path.clone()).await.with_context(|| format!("Failed to get sqlite pool at {}", db_path))?;
     Ok(pool)
 }
 
