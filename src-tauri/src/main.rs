@@ -1,12 +1,16 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use std::fs::create_dir_all;
+use std::path::PathBuf;
+
 use anyhow::{anyhow, Context as _, Result};
 use dotenvy::dotenv;
 use serde::{Deserialize, Serialize};
+use sqlx::migrate::MigrateDatabase;
 use sqlx::sqlite::SqlitePool;
-use sqlx::FromRow;
-use tauri::{Manager, State};
+use sqlx::{FromRow, Sqlite};
+use tauri::{AppHandle, Manager, State};
 
 use custom_error::CustomError;
 
@@ -28,15 +32,75 @@ fn greet(name: &str) -> String {
     format!("Hello, {}! You've been greeted from Rust!", name)
 }
 
-async fn get_sqlite_pool() -> Result<SqlitePool, CustomError> {
-    let path = std::path::Path::new("sqlite.db");
-    let options = sqlx::sqlite::SqliteConnectOptions::new()
-        .filename(path)
-        .create_if_missing(true);
-    let pool = SqlitePool::connect_with(options)
-        .await
-        .map_err(|e| CustomError::Anyhow(anyhow!("Failed to connect to database: {}", e)))?;
+fn app_path(handle: &AppHandle) -> PathBuf {
+    // get app_dir
+    // if success, print the path
+    // if failed, expect the error
+    let app_path = handle
+        .path_resolver()
+        .app_data_dir()
+        .expect("Failed to get app path");
 
+    println!("app path: {:?}", app_path);
+
+    app_path
+}
+
+fn db_path(mut base: PathBuf) -> String {
+    base.push("data.db");
+
+    format!("sqlite://{}", base.to_str().expect("Failed to get db path"))
+}
+
+async fn migrate_database(pool: &SqlitePool) -> Result<(), CustomError> {
+    let migrator = sqlx::migrate!("./migrations");
+    migrator
+        .run(pool)
+        .await
+        .with_context(|| "Failed to run migrations")?;
+    Ok(())
+}
+
+async fn initialize_sqlite(handle: AppHandle) -> Result<SqlitePool, CustomError> {
+    let data_path = app_path(&handle);
+    let db_path = db_path(data_path.clone());
+
+    // create data dir
+    create_dir_all(&data_path)
+        .with_context(|| format!("Failed to create data dir at {:?}", data_path))?;
+
+    let db_exists = Sqlite::database_exists(&db_path)
+        .await
+        .with_context(|| format!("Failed to check if database exists at {}", db_path))?;
+
+    // create the sqlite database if it does not exist
+    if !db_exists {
+        Sqlite::create_database(&db_path)
+            .await
+            .with_context(|| format!("Failed to create database at {}", db_path))?;
+
+        // print the path
+        println!("sqlite database created at {}", db_path);
+    }
+
+    let pool = get_sqlite_pool(db_path.clone())
+        .await
+        .with_context(|| format!("Failed to get sqlite pool at {}", db_path))?;
+
+    // run migrations
+    if !db_exists {
+        migrate_database(&pool)
+            .await
+            .with_context(|| "Failed to run migrations")?;
+    }
+
+    Ok(pool)
+}
+
+async fn get_sqlite_pool(path: String) -> Result<SqlitePool, CustomError> {
+    let pool = SqlitePool::connect(&path)
+        .await
+        .context("Failed to connect to sqlite")?;
     Ok(pool)
 }
 
@@ -95,7 +159,6 @@ fn main() {
     use tauri::async_runtime::block_on;
 
     dotenv().expect("Failed to load .env file");
-    let pool = block_on(get_sqlite_pool()).expect("Failed to create SQLite pool");
 
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
@@ -104,6 +167,8 @@ fn main() {
             get_description_by_source_id
         ])
         .setup(|app| {
+            let pool = block_on(initialize_sqlite(app.handle()))
+                .expect("Failed to initialize sqlite pool");
             app.manage(pool);
             Ok(())
         })
