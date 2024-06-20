@@ -1,6 +1,7 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use std::fs::create_dir_all;
 use std::path::PathBuf;
 
 use anyhow::{anyhow, Context as _, Result};
@@ -53,11 +54,19 @@ fn db_path(mut base: PathBuf) -> String {
 
 async fn initialize_sqlite(handle: AppHandle) -> Result<SqlitePool, CustomError> {
     let data_path = app_path(&handle);
-    let db_path = db_path(data_path);
+    let db_path = db_path(data_path.clone());
 
+    // create data dir
+    create_dir_all(&data_path).with_context(|| format!("Failed to create data dir at {:?}", data_path))?;
+
+    // create the sqlite database if it does not exist
     if !Sqlite::database_exists(&db_path).await.unwrap_or(false) {
         Sqlite::create_database(&db_path).await.with_context(|| format!("Failed to create database at {}", db_path))?;
+
+        // print the path
+        println!("sqlite database created at {}", db_path);
     }
+
     let pool = get_sqlite_pool(db_path.clone()).await.with_context(|| format!("Failed to get sqlite pool at {}", db_path))?;
     Ok(pool)
 }
