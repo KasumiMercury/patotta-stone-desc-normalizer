@@ -8,7 +8,7 @@ use dotenvy::dotenv;
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use sqlx::sqlite::SqlitePool;
-use tauri::{App, AppHandle, Manager, State};
+use tauri::{AppHandle, Manager, State};
 
 use custom_error::CustomError;
 
@@ -50,8 +50,8 @@ fn db_path(mut base: PathBuf) -> String {
 
 }
 
-async fn initialize_sqlite(app: App) -> Result<SqlitePool, CustomError> {
-    let path = db_path(app_path(&app.handle()));
+async fn initialize_sqlite(handle: AppHandle) -> Result<SqlitePool, CustomError> {
+    let path = db_path(app_path(&handle));
     let pool = get_sqlite_pool(path.into_boxed_path()).await?;
     Ok(pool)
 }
@@ -122,7 +122,6 @@ fn main() {
     use tauri::async_runtime::block_on;
 
     dotenv().expect("Failed to load .env file");
-    let pool = block_on(get_sqlite_pool()).expect("Failed to create SQLite pool");
 
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
@@ -131,8 +130,8 @@ fn main() {
             get_description_by_source_id
         ])
         .setup(|app| {
+            let pool = block_on(initialize_sqlite(app.handle())).expect("Failed to initialize sqlite pool");
             app.manage(pool);
-            app_path(&app.handle());
             Ok(())
         })
         .run(tauri::generate_context!())
