@@ -52,6 +52,12 @@ fn db_path(mut base: PathBuf) -> String {
 
 }
 
+async fn migrate_database(pool: &SqlitePool) -> Result<(), CustomError> {
+    let mut migrator = sqlx::migrate!("./migrations");
+    migrator.run(pool).await.with_context(|| "Failed to run migrations")?;
+    Ok(())
+}
+
 async fn initialize_sqlite(handle: AppHandle) -> Result<SqlitePool, CustomError> {
     let data_path = app_path(&handle);
     let db_path = db_path(data_path.clone());
