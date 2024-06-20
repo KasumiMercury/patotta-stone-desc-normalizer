@@ -65,8 +65,10 @@ async fn initialize_sqlite(handle: AppHandle) -> Result<SqlitePool, CustomError>
     // create data dir
     create_dir_all(&data_path).with_context(|| format!("Failed to create data dir at {:?}", data_path))?;
 
+    let db_exists = Sqlite::database_exists(&db_path).await.with_context(|| format!("Failed to check if database exists at {}", db_path))?;
+
     // create the sqlite database if it does not exist
-    if !Sqlite::database_exists(&db_path).await.unwrap_or(false) {
+    if !db_exists {
         Sqlite::create_database(&db_path).await.with_context(|| format!("Failed to create database at {}", db_path))?;
 
         // print the path
@@ -74,6 +76,12 @@ async fn initialize_sqlite(handle: AppHandle) -> Result<SqlitePool, CustomError>
     }
 
     let pool = get_sqlite_pool(db_path.clone()).await.with_context(|| format!("Failed to get sqlite pool at {}", db_path))?;
+
+    // run migrations
+    if !db_exists {
+        migrate_database(&pool).await.with_context(|| "Failed to run migrations")?;
+    }
+
     Ok(pool)
 }
 
