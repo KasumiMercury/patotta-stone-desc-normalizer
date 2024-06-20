@@ -1,14 +1,14 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use anyhow::{anyhow, Context as _, Result};
 use dotenvy::dotenv;
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 use sqlx::sqlite::SqlitePool;
-use tauri::{AppHandle, Manager, State};
+use tauri::{App, AppHandle, Manager, State};
 
 use custom_error::CustomError;
 
@@ -34,15 +34,29 @@ fn app_path(handle: &AppHandle) -> PathBuf {
     // get app_dir
     // if success, print the path
     // if failed, expect the error
-    let app_path = handle.path_resolver().app_config_dir().expect("Failed to get app path");
+    let app_path = handle.path_resolver().app_data_dir().expect("Failed to get app path");
 
     println!("app path: {:?}", app_path);
 
     app_path
 }
 
-async fn get_sqlite_pool() -> Result<SqlitePool, CustomError> {
-    let path = std::path::Path::new("sqlite.db");
+fn db_path(mut base: PathBuf) -> String {
+    base.push(
+        "data.db"
+    );
+
+    format!("sqlite://{}", base.to_string_lossy().expect("Failed to get db path"))
+
+}
+
+async fn initialize_sqlite(app: App) -> Result<SqlitePool, CustomError> {
+    let path = db_path(app_path(&app.handle()));
+    let pool = get_sqlite_pool(path.into_boxed_path()).await?;
+    Ok(pool)
+}
+
+async fn get_sqlite_pool(path: Box<Path>) -> Result<SqlitePool, CustomError> {
     let options = sqlx::sqlite::SqliteConnectOptions::new()
         .filename(path)
         .create_if_missing(true);
