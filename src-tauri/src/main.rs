@@ -57,13 +57,9 @@ async fn initialize_sqlite(handle: AppHandle) -> Result<SqlitePool, CustomError>
 }
 
 async fn get_sqlite_pool(path: String) -> Result<SqlitePool, CustomError> {
-    let options = sqlx::sqlite::SqliteConnectOptions::new()
-        .filename(path)
-        .create_if_missing(true);
-    let pool = SqlitePool::connect_with(options)
+    let pool = SqlitePool::connect(&path)
         .await
-        .map_err(|e| CustomError::Anyhow(anyhow!("Failed to connect to database: {}", e)))?;
-
+        .context("Failed to connect to sqlite")?;
     Ok(pool)
 }
 
