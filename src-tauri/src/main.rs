@@ -7,9 +7,9 @@ use std::path::PathBuf;
 use anyhow::{anyhow, Context as _, Result};
 use dotenvy::dotenv;
 use serde::{Deserialize, Serialize};
-use sqlx::{FromRow, Sqlite};
 use sqlx::migrate::MigrateDatabase;
 use sqlx::sqlite::SqlitePool;
+use sqlx::{FromRow, Sqlite};
 use tauri::{AppHandle, Manager, State};
 
 use custom_error::CustomError;
@@ -36,7 +36,10 @@ fn app_path(handle: &AppHandle) -> PathBuf {
     // get app_dir
     // if success, print the path
     // if failed, expect the error
-    let app_path = handle.path_resolver().app_data_dir().expect("Failed to get app path");
+    let app_path = handle
+        .path_resolver()
+        .app_data_dir()
+        .expect("Failed to get app path");
 
     println!("app path: {:?}", app_path);
 
@@ -44,17 +47,17 @@ fn app_path(handle: &AppHandle) -> PathBuf {
 }
 
 fn db_path(mut base: PathBuf) -> String {
-    base.push(
-        "data.db"
-    );
+    base.push("data.db");
 
     format!("sqlite://{}", base.to_str().expect("Failed to get db path"))
-
 }
 
 async fn migrate_database(pool: &SqlitePool) -> Result<(), CustomError> {
-    let mut migrator = sqlx::migrate!("./migrations");
-    migrator.run(pool).await.with_context(|| "Failed to run migrations")?;
+    let migrator = sqlx::migrate!("./migrations");
+    migrator
+        .run(pool)
+        .await
+        .with_context(|| "Failed to run migrations")?;
     Ok(())
 }
 
@@ -63,23 +66,32 @@ async fn initialize_sqlite(handle: AppHandle) -> Result<SqlitePool, CustomError>
     let db_path = db_path(data_path.clone());
 
     // create data dir
-    create_dir_all(&data_path).with_context(|| format!("Failed to create data dir at {:?}", data_path))?;
+    create_dir_all(&data_path)
+        .with_context(|| format!("Failed to create data dir at {:?}", data_path))?;
 
-    let db_exists = Sqlite::database_exists(&db_path).await.with_context(|| format!("Failed to check if database exists at {}", db_path))?;
+    let db_exists = Sqlite::database_exists(&db_path)
+        .await
+        .with_context(|| format!("Failed to check if database exists at {}", db_path))?;
 
     // create the sqlite database if it does not exist
     if !db_exists {
-        Sqlite::create_database(&db_path).await.with_context(|| format!("Failed to create database at {}", db_path))?;
+        Sqlite::create_database(&db_path)
+            .await
+            .with_context(|| format!("Failed to create database at {}", db_path))?;
 
         // print the path
         println!("sqlite database created at {}", db_path);
     }
 
-    let pool = get_sqlite_pool(db_path.clone()).await.with_context(|| format!("Failed to get sqlite pool at {}", db_path))?;
+    let pool = get_sqlite_pool(db_path.clone())
+        .await
+        .with_context(|| format!("Failed to get sqlite pool at {}", db_path))?;
 
     // run migrations
     if !db_exists {
-        migrate_database(&pool).await.with_context(|| "Failed to run migrations")?;
+        migrate_database(&pool)
+            .await
+            .with_context(|| "Failed to run migrations")?;
     }
 
     Ok(pool)
@@ -155,7 +167,8 @@ fn main() {
             get_description_by_source_id
         ])
         .setup(|app| {
-            let pool = block_on(initialize_sqlite(app.handle())).expect("Failed to initialize sqlite pool");
+            let pool = block_on(initialize_sqlite(app.handle()))
+                .expect("Failed to initialize sqlite pool");
             app.manage(pool);
             Ok(())
         })
