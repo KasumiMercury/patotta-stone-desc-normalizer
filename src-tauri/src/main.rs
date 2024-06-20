@@ -1,7 +1,7 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use anyhow::{anyhow, Context as _, Result};
 use dotenvy::dotenv;
@@ -46,17 +46,17 @@ fn db_path(mut base: PathBuf) -> String {
         "data.db"
     );
 
-    format!("sqlite://{}", base.to_string_lossy().expect("Failed to get db path"))
+    format!("sqlite://{}", base.to_str().expect("Failed to get db path"))
 
 }
 
 async fn initialize_sqlite(handle: AppHandle) -> Result<SqlitePool, CustomError> {
     let path = db_path(app_path(&handle));
-    let pool = get_sqlite_pool(path.into_boxed_path()).await?;
+    let pool = get_sqlite_pool(path).await?;
     Ok(pool)
 }
 
-async fn get_sqlite_pool(path: Box<Path>) -> Result<SqlitePool, CustomError> {
+async fn get_sqlite_pool(path: String) -> Result<SqlitePool, CustomError> {
     let options = sqlx::sqlite::SqliteConnectOptions::new()
         .filename(path)
         .create_if_missing(true);
