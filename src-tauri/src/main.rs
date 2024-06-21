@@ -176,8 +176,9 @@ fn main() {
             app.manage(pool);
             Ok(())
         })
-        .build(tauri::generate_context!()).expect("error while building tauri application")
-        .run( |_app_handle, event| {
+        .build(tauri::generate_context!())
+        .expect("error while building tauri application")
+        .run(|_app_handle, event| {
             let _ = match event {
                 RunEvent::WindowEvent { label, event, .. } => {
                     if let tauri::WindowEvent::Destroyed = event {
