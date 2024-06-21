@@ -178,17 +178,22 @@ fn main() {
         })
         .build(tauri::generate_context!()).expect("error while building tauri application")
         .run( |_app_handle, event| {
-            if let RunEvent::ExitRequested { ref api, .. } = event {
-                api.prevent_exit();
-            }
-            if let RunEvent::WindowEvent { label, event, .. } = event {
-                if let tauri::WindowEvent::Destroyed = event {
-                    if label == "main" {
-                        let pool = _app_handle.state::<Pool<Sqlite>>();
-                        tauri::async_runtime::block_on(close_sqlite_pool(pool.inner().clone()));
-                        _app_handle.exit(0);
+            let _ = match event {
+                RunEvent::WindowEvent { label, event, .. } => {
+                    if let tauri::WindowEvent::Destroyed = event {
+                        if label == "main" {
+                            let pool = _app_handle.state::<Pool<Sqlite>>();
+                            block_on(close_sqlite_pool(pool.inner().clone()));
+                            _app_handle.exit(0);
+                        }
                     }
+                    return;
                 }
-            }
+                RunEvent::ExitRequested { ref api, .. } => {
+                    api.prevent_exit();
+                    return;
+                }
+                _ => event,
+            };
         })
 }
