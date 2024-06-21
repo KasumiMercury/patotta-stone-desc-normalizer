@@ -51,7 +51,7 @@ function App() {
 	}
 
 	return (
-		<div className="m-0 flex justify-center text-center pt-6 flex-col">
+		<div className="m-0 flex justify-center text-center pt-6 px-2 flex-col">
 			<div className="w-full flex justify-end gap-2">
 				<button
 					type="button"
