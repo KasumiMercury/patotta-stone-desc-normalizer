@@ -9,8 +9,8 @@ use dotenvy::dotenv;
 use serde::{Deserialize, Serialize};
 use sqlx::migrate::MigrateDatabase;
 use sqlx::sqlite::SqlitePool;
-use sqlx::{FromRow, Sqlite};
-use tauri::{AppHandle, Manager, State};
+use sqlx::{FromRow, Pool, Sqlite};
+use tauri::{AppHandle, Manager, RunEvent, State};
 
 use custom_error::CustomError;
 
@@ -155,6 +155,10 @@ async fn get_description_by_source_id_infra(
     Ok(desc)
 }
 
+async fn close_sqlite_pool(pool: Pool<Sqlite>) {
+    pool.close().await;
+}
+
 fn main() {
     use tauri::async_runtime::block_on;
 
@@ -172,6 +176,25 @@ fn main() {
             app.manage(pool);
             Ok(())
         })
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while building tauri application")
+        .run(|_app_handle, event| {
+            let _ = match event {
+                RunEvent::WindowEvent { label, event, .. } => {
+                    if let tauri::WindowEvent::Destroyed = event {
+                        if label == "main" {
+                            let pool = _app_handle.state::<Pool<Sqlite>>();
+                            block_on(close_sqlite_pool(pool.inner().clone()));
+                            _app_handle.exit(0);
+                        }
+                    }
+                    return;
+                }
+                RunEvent::ExitRequested { ref api, .. } => {
+                    api.prevent_exit();
+                    return;
+                }
+                _ => event,
+            };
+        })
 }
