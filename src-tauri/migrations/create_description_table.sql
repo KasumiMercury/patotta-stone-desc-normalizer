@@ -4,12 +4,13 @@
 CREATE TABLE description
 (
     id              INTEGER PRIMARY KEY AUTOINCREMENT,
-    source_id       TEXT NOT NULL,
-    title           TEXT NOT NULL,
-    description     TEXT NOT NULL,
-    desc_hash       TEXT NOT NULL,
-    published_at    TEXT NOT NULL,
-    actual_start_at TEXT NOT NULL
+    source_id       TEXT    NOT NULL,
+    title           TEXT    NOT NULL,
+    description     TEXT    NOT NULL,
+    desc_hash       TEXT    NOT NULL,
+    published_at    TEXT    NOT NULL,
+    actual_start_at TEXT    NOT NULL,
+    is_processed    INTEGER NOT NULL
 );
 
 -- Add unique constraint to description table
