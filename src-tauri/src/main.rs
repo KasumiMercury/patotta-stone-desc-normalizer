@@ -190,6 +190,7 @@ fn main() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             greet,
+            check_data_exists,
             load_csv,
             get_description_by_source_id
         ])
