@@ -127,19 +127,25 @@ struct Description {
 
 #[tauri::command]
 async fn check_data_exists(pool: State<'_, SqlitePool>) -> Result<bool, CustomError> {
-    let exists = check_data_exists_infra(pool)
+    let exists = check_load_history(pool)
         .await
         .map_err(|e| CustomError::Anyhow(anyhow!("Failed to check if data exists: {}", e)))?;
 
     Ok(exists)
 }
 
-async fn check_data_exists_infra(pool: State<'_, SqlitePool>) -> Result<bool, sqlx::Error> {
+async fn check_load_history(pool: State<'_, SqlitePool>) -> Result<bool, sqlx::Error> {
     let p = pool.clone();
-    let query = format!("SELECT EXISTS(SELECT 1 FROM {} LIMIT 1)", "desc");
-    let exists: bool = sqlx::query_scalar(&query).fetch_one(&*p).await?;
+    // select latest record from load_history
+    let history = sqlx::query_as::<_, Description>(
+        r#"
+        SELECT * FROM desc
+        "#,
+    )
+    .fetch_optional(&*p)
+    .await?;
 
-    Ok(exists)
+    Ok(history.is_some())
 }
 
 #[tauri::command]
