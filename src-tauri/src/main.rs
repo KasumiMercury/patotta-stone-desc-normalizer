@@ -126,6 +126,29 @@ struct Description {
 }
 
 #[tauri::command]
+async fn check_data_exists(pool: State<'_, SqlitePool>) -> Result<bool, CustomError> {
+    let exists = check_load_history(pool)
+        .await
+        .map_err(|e| CustomError::Anyhow(anyhow!("Failed to check if data exists: {}", e)))?;
+
+    Ok(exists)
+}
+
+async fn check_load_history(pool: State<'_, SqlitePool>) -> Result<bool, sqlx::Error> {
+    let p = pool.clone();
+    // select latest record from load_history
+    let history = sqlx::query_as::<_, Description>(
+        r#"
+        SELECT * FROM desc
+        "#,
+    )
+    .fetch_optional(&*p)
+    .await?;
+
+    Ok(history.is_some())
+}
+
+#[tauri::command]
 async fn get_description_by_source_id(
     pool: State<'_, SqlitePool>,
     source_id: String,
@@ -167,6 +190,7 @@ fn main() {
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![
             greet,
+            check_data_exists,
             load_csv,
             get_description_by_source_id
         ])
