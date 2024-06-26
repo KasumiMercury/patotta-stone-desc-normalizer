@@ -126,6 +126,23 @@ struct Description {
 }
 
 #[tauri::command]
+async fn check_data_exists(pool: State<'_, SqlitePool>) -> Result<bool, CustomError> {
+    let exists = check_data_exists_infra(pool)
+        .await
+        .map_err(|e| CustomError::Anyhow(anyhow!("Failed to check if data exists: {}", e)))?;
+
+    Ok(exists)
+}
+
+async fn check_data_exists_infra(pool: State<'_, SqlitePool>) -> Result<bool, sqlx::Error> {
+    let p = pool.clone();
+    let query = format!("SELECT EXISTS(SELECT 1 FROM {} LIMIT 1)", "desc");
+    let exists: bool = sqlx::query_scalar(&query).fetch_one(&*p).await?;
+
+    Ok(exists)
+}
+
+#[tauri::command]
 async fn get_description_by_source_id(
     pool: State<'_, SqlitePool>,
     source_id: String,
