@@ -115,7 +115,7 @@ async fn load_csv(pool: State<'_, SqlitePool>, path: &str) -> Result<(), CustomE
 }
 
 #[derive(Debug, Serialize, Deserialize, FromRow)]
-struct LoadHistory {
+struct History {
     pub id: i32,
     pub count: i32,
     pub loaded_at: String,
@@ -138,10 +138,10 @@ async fn check_data_exists(pool: State<'_, SqlitePool>) -> Result<String, Custom
     }
 }
 
-async fn check_load_history(pool: State<'_, SqlitePool>) -> Result<LoadHistory, sqlx::Error> {
+async fn check_load_history(pool: State<'_, SqlitePool>) -> Result<History, sqlx::Error> {
     let p = pool.clone();
     // select latest record from load_history
-    let history = sqlx::query_as::<_, LoadHistory>(
+    let history = sqlx::query_as::<_, History>(
         r#"
         SELECT * FROM load_history ORDER BY id DESC LIMIT 1
         "#,
