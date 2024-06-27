@@ -123,8 +123,9 @@ struct LoadHistory {
 
 #[tauri::command]
 async fn check_data_exists(pool: State<'_, SqlitePool>) -> Result<String, CustomError> {
-   let history = check_load_history(pool).await
-           .map_err(|e| CustomError::Anyhow(anyhow!("Failed to check data exists: {}", e)))?;
+    let history = check_load_history(pool)
+        .await
+        .map_err(|e| CustomError::Anyhow(anyhow!("Failed to check data exists: {}", e)))?;
 
     // return as json
     // if there is no data, return empty json
