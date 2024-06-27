@@ -114,17 +114,6 @@ async fn load_csv(pool: State<'_, SqlitePool>, path: &str) -> Result<(), CustomE
     Ok(())
 }
 
-#[derive(Debug, Serialize, Deserialize, FromRow)]
-#[allow(dead_code)]
-struct Description {
-    pub id: i32,
-    pub source_id: String,
-    pub title: String,
-    pub description: String,
-    pub published_at: String,
-    pub actual_start_at: String,
-}
-
 #[tauri::command]
 async fn check_data_exists(pool: State<'_, SqlitePool>) -> Result<bool, CustomError> {
     let exists = check_load_history(pool)
@@ -146,6 +135,17 @@ async fn check_load_history(pool: State<'_, SqlitePool>) -> Result<bool, sqlx::E
     .await?;
 
     Ok(history.is_some())
+}
+
+#[derive(Debug, Serialize, Deserialize, FromRow)]
+#[allow(dead_code)]
+struct Description {
+    pub id: i32,
+    pub source_id: String,
+    pub title: String,
+    pub description: String,
+    pub published_at: String,
+    pub actual_start_at: String,
 }
 
 #[tauri::command]
