@@ -117,6 +117,7 @@ async fn load_csv(pool: State<'_, SqlitePool>, path: &str) -> Result<(), CustomE
 #[derive(Debug, Serialize, Deserialize, FromRow)]
 struct History {
     pub id: i32,
+    pub path: String,
     pub count: i32,
     pub loaded_at: String,
 }
