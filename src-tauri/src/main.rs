@@ -121,6 +121,14 @@ struct History {
     pub loaded_at: String,
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+struct ExistenceInfo {
+    pub exists: bool,
+    pub count: i32,
+    pub last_loaded_at: String,
+    pub histories: Vec<History>,
+}
+
 #[tauri::command]
 async fn check_data_exists(pool: State<'_, SqlitePool>) -> Result<String, CustomError> {
     let history = check_load_history(pool)
@@ -128,25 +136,36 @@ async fn check_data_exists(pool: State<'_, SqlitePool>) -> Result<String, Custom
         .map_err(|e| CustomError::Anyhow(anyhow!("Failed to check data exists: {}", e)))?;
 
     // return as json
-    // if there is no data, return empty json
-    // if there is data, return the data as json
-
-    if history.count == 0 {
-        Ok("{}".to_string())
-    } else {
-        Ok(serde_json::to_string(&history).unwrap())
+    // if history.count is 0, ExistenceInfo.exists is false
+    if history.is_empty() {
+        return Ok(serde_json::to_string(&ExistenceInfo {
+            exists: false,
+            count: 0,
+            last_loaded_at: "".to_string(),
+            histories: vec![],
+        })
+        .unwrap());
     }
+
+    // if history.count is not 0, ExistenceInfo.exists is true
+    Ok(serde_json::to_string(&ExistenceInfo {
+        exists: true,
+        count: history[0].count,
+        last_loaded_at: history[0].loaded_at.clone(),
+        histories: history,
+    })
+    .unwrap())
 }
 
-async fn check_load_history(pool: State<'_, SqlitePool>) -> Result<History, sqlx::Error> {
+async fn check_load_history(pool: State<'_, SqlitePool>) -> Result<Vec<History>, sqlx::Error> {
     let p = pool.clone();
     // select latest record from load_history
     let history = sqlx::query_as::<_, History>(
         r#"
-        SELECT * FROM load_history ORDER BY id DESC LIMIT 1
+        SELECT * FROM load_history ORDER BY id DESC
         "#,
     )
-    .fetch_one(&*p)
+    .fetch_all(&*p)
     .await?;
 
     Ok(history)
