@@ -3,6 +3,12 @@ import { useEffect, useState } from "react";
 import "./App.css";
 import { invoke } from "@tauri-apps/api/tauri";
 import * as dayjs from "dayjs";
+import utc from "dayjs/plugin/utc";
+import timezone from "dayjs/plugin/timezone";
+
+// Add timezone support
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 type ISODateString = string & { __brand: "ISODateString" };
 
@@ -22,6 +28,8 @@ interface LoadHistory {
 	path: string;
 	count: number;
 	loaded_at: ISODateString;
+
+	getLoadedAtJST(): dayjs.Dayjs;
 }
 
 interface ExistenceInfo {
@@ -29,6 +37,8 @@ interface ExistenceInfo {
 	count: number;
 	last_loaded_at: ISODateString;
 	histories: LoadHistory[];
+
+	getLastLoadedAtJST(): dayjs.Dayjs;
 }
 
 class LoadHistoryImpl implements LoadHistory {
@@ -38,6 +48,10 @@ class LoadHistoryImpl implements LoadHistory {
 		public count: number,
 		public loaded_at: ISODateString,
 	) {}
+
+	getLoadedAtJST(): dayjs.Dayjs {
+		return dayjs(this.loaded_at).tz("Asia/Tokyo");
+	}
 }
 
 class ExistenceInfoImpl implements ExistenceInfo {
@@ -47,6 +61,10 @@ class ExistenceInfoImpl implements ExistenceInfo {
 		public last_loaded_at: ISODateString,
 		public histories: LoadHistory[],
 	) {}
+
+	getLastLoadedAtJST(): dayjs.Dayjs {
+		return dayjs(this.last_loaded_at).tz("Asia/Tokyo");
+	}
 }
 
 async function fetchExistenceInfo(): Promise<ExistenceInfo> {
@@ -92,7 +110,6 @@ function App() {
 			} else {
 				setIsLoaded(false);
 			}
-
 		})();
 	}, []);
 
