@@ -2,7 +2,6 @@ import { open } from "@tauri-apps/api/dialog";
 import { useEffect, useState } from "react";
 import "./App.css";
 import { invoke } from "@tauri-apps/api/tauri";
-import type {Response} from "@tauri-apps/api/http";
 
 interface LoadHistory {
 	id: number;
@@ -30,10 +29,11 @@ function App() {
 	useEffect(() => {
 		(async () => {
 			// result is json object
-			const existence_info: Response<ExistenceInfo> = await invoke("check_data_existence");
-			// parse the json object
-			if (existence_info.data.exists) {
-				setFilePath(existence_info.data.last_loaded_at);
+			const result = await invoke("check_data_existence");
+			const data = JSON.parse(result as string) as ExistenceInfo;
+
+			if (data.exists) {
+				setFilePath(data.histories[0].path);
 				setIsLoaded(true);
 			} else {
 				setIsLoaded(false);
