@@ -19,6 +19,24 @@ interface ExistenceInfo {
 	histories: LoadHistory[];
 }
 
+class LoadHistoryImpl implements LoadHistory {
+	constructor(
+		public id: number,
+		public path: string,
+		public count: number,
+		public loaded_at: ISODateString,
+	) {}
+}
+
+class ExistenceInfoImpl implements ExistenceInfo {
+	constructor(
+		public exists: boolean,
+		public count: number,
+		public last_loaded_at: ISODateString,
+		public histories: LoadHistory[],
+	) {}
+}
+
 function App() {
 	const [isLoaded, setIsLoaded] = useState(false);
 	const [filePath, setFilePath] = useState("");
@@ -32,14 +50,29 @@ function App() {
 		(async () => {
 			// result is json object
 			const result = await invoke("check_data_existence");
-			const data = JSON.parse(result as string) as ExistenceInfo;
+			const data = JSON.parse(result as string);
+			const existenceInfo = new ExistenceInfoImpl(
+				data.exists,
+				data.count,
+				data.last_loaded_at,
+				data.histories.map(
+					(history: LoadHistory) =>
+						new LoadHistoryImpl(
+							history.id,
+							history.path,
+							history.count,
+							history.loaded_at,
+						),
+				),
+			);
 
-			if (data.exists) {
-				setFilePath(data.histories[0].path);
+			if (existenceInfo.exists) {
 				setIsLoaded(true);
+				setFilePath(existenceInfo.histories[0].path);
 			} else {
 				setIsLoaded(false);
 			}
+
 		})();
 	}, []);
 
