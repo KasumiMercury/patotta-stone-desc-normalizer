@@ -2,8 +2,20 @@ import { open } from "@tauri-apps/api/dialog";
 import { useEffect, useState } from "react";
 import "./App.css";
 import { invoke } from "@tauri-apps/api/tauri";
+import * as dayjs from "dayjs";
 
 type ISODateString = string & { __brand: "ISODateString" };
+
+function isISODateString(value: string): value is ISODateString {
+	return dayjs(value).isValid();
+}
+
+function toISODateString(value: string): ISODateString {
+	if (!isISODateString(value)) {
+		throw new Error("Invalid ISO date string");
+	}
+	return value;
+}
 
 interface LoadHistory {
 	id: number;
@@ -37,6 +49,30 @@ class ExistenceInfoImpl implements ExistenceInfo {
 	) {}
 }
 
+async function fetchExistenceInfo(): Promise<ExistenceInfo> {
+	try {
+		const result = await invoke("check_data_existence");
+		const data = JSON.parse(result as string);
+		return new ExistenceInfoImpl(
+			data.exists,
+			data.count,
+			toISODateString(data.last_loaded_at),
+			data.histories.map(
+				(history: LoadHistory) =>
+					new LoadHistoryImpl(
+						history.id,
+						history.path,
+						history.count,
+						toISODateString(history.loaded_at),
+					),
+			),
+		);
+	} catch (error) {
+		console.error("Failed to fetch existence info", error);
+		throw error;
+	}
+}
+
 function App() {
 	const [isLoaded, setIsLoaded] = useState(false);
 	const [filePath, setFilePath] = useState("");
@@ -48,23 +84,7 @@ function App() {
 	// If the data is not existed, display button to open dialog of file selection
 	useEffect(() => {
 		(async () => {
-			// result is json object
-			const result = await invoke("check_data_existence");
-			const data = JSON.parse(result as string);
-			const existenceInfo = new ExistenceInfoImpl(
-				data.exists,
-				data.count,
-				data.last_loaded_at,
-				data.histories.map(
-					(history: LoadHistory) =>
-						new LoadHistoryImpl(
-							history.id,
-							history.path,
-							history.count,
-							history.loaded_at,
-						),
-				),
-			);
+			const existenceInfo = await fetchExistenceInfo();
 
 			if (existenceInfo.exists) {
 				setIsLoaded(true);
