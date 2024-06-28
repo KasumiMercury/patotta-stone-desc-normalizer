@@ -3,17 +3,19 @@ import { useEffect, useState } from "react";
 import "./App.css";
 import { invoke } from "@tauri-apps/api/tauri";
 
+type ISODateString = string & { __brand: "ISODateString" };
+
 interface LoadHistory {
 	id: number;
 	path: string;
 	count: number;
-	loaded_at: string;
+	loaded_at: ISODateString;
 }
 
 interface ExistenceInfo {
 	exists: boolean;
 	count: number;
-	last_loaded_at: string;
+	last_loaded_at: ISODateString;
 	histories: LoadHistory[];
 }
 
