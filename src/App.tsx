@@ -2,6 +2,21 @@ import { open } from "@tauri-apps/api/dialog";
 import { useEffect, useState } from "react";
 import "./App.css";
 import { invoke } from "@tauri-apps/api/tauri";
+import type {Response} from "@tauri-apps/api/http";
+
+interface LoadHistory {
+	id: number;
+	path: string;
+	count: number;
+	loaded_at: string;
+}
+
+interface ExistenceInfo {
+	exists: boolean;
+	count: number;
+	last_loaded_at: string;
+	histories: LoadHistory[];
+}
 
 function App() {
 	const [isLoaded, setIsLoaded] = useState(false);
@@ -15,11 +30,10 @@ function App() {
 	useEffect(() => {
 		(async () => {
 			// result is json object
-			const result: string = await invoke("check_data_exists");
+			const existence_info: Response<ExistenceInfo> = await invoke("check_data_existence");
 			// parse the json object
-			const existence_info = JSON.parse(result);
-			if (existence_info.exists) {
-				setFilePath(existence_info.path);
+			if (existence_info.data.exists) {
+				setFilePath(existence_info.data.last_loaded_at);
 				setIsLoaded(true);
 			} else {
 				setIsLoaded(false);
@@ -70,6 +84,28 @@ function App() {
 
 	return (
 		<div>
+			{isLoaded ? (
+				<div>
+					<p>File path: {filePath}</p>
+				</div>
+			) : (
+				<div>
+					<h1>Data is not loaded</h1>
+					{/* biome-ignore lint/a11y/useButtonType: <explanation> */}
+					<button onClick={openLoadDialog}>Open dialog</button>
+				</div>
+			)}
+			{/* the dialog to load the file */}
+			{openConfirmDialog && (
+				<div>
+					<p>Are you sure you want to load the file?</p>
+					{/* biome-ignore lint/a11y/useButtonType: <explanation> */}
+					<button onClick={loadFile}>Yes</button>
+					{/* biome-ignore lint/a11y/useButtonType: <explanation> */}
+					<button onClick={() => setOpenConfirmDialog(false)}>No</button>
+				</div>
+			)}
+			{error && <p>Error: {error}</p>}
 		</div>
 	);
 }
