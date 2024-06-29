@@ -163,21 +163,33 @@ function App() {
 					<LoadHistoryList histories={histories} />
 				</div>
 			) : (
-				<div>
-					<h1>Data is not loaded</h1>
-					{/* biome-ignore lint/a11y/useButtonType: <explanation> */}
-					<button onClick={openLoadDialog}>Open dialog</button>
+				<div className="absolute inset-0 flex justify-center items-center">
+					<div className="w-fit h-fit flex flex-col items-center">
+						<h1 className="w-fit text-nowrap">Data is not loaded</h1>
+						<button
+							onClick={openLoadDialog}
+							type={"button"}
+							className="border-b-stone-400 border py-2 px-4 rounded-full my-2 bg-stone-800 shadow-md shadow-stone-900"
+						>
+							Select File
+						</button>
+					</div>
 				</div>
 			)}
 			{/* the dialog to load the file */}
 			{openConfirmDialog && (
-				<div>
-					<p>Are you sure you want to load the file?</p>
-					<p>file path: {filePath}</p>
-					{/* biome-ignore lint/a11y/useButtonType: <explanation> */}
-					<button onClick={loadFile}>Yes</button>
-					{/* biome-ignore lint/a11y/useButtonType: <explanation> */}
-					<button onClick={() => setOpenConfirmDialog(false)}>No</button>
+				<div className="absolute inset-0 flex justify-center items-center bg-zinc-800/40">
+					<div className="w-5/6 bg-zinc-800 shadow-md shadow-zinc-300/40 flex flex-col gap-y-3 px-3 rounded-lg border border-zinc-100 items-center">
+						<p className="text-lg pt-4">Are you sure you want to load the file?</p>
+						<p className="text-xs text-pretty text-center py-2">
+							file path: {filePath}
+						</p>
+						<div className="w-full flex py-3 border-t">
+							<button className="grow" type={"button"} onClick={() => setOpenConfirmDialog(false)}>No</button>
+							<div className="w-1 grow-0 border-l mx-2" />
+							<button className="grow" type={"button"} onClick={loadFile}>Yes</button>
+						</div>
+					</div>
 				</div>
 			)}
 			{error && <p>Error: {error}</p>}
