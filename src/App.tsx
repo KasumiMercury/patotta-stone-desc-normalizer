@@ -5,6 +5,7 @@ import { invoke } from "@tauri-apps/api/tauri";
 import * as dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+import LoadHistoryList from "./components/LoadHistory.tsx";
 
 // Add timezone support
 dayjs.extend(utc);
@@ -23,7 +24,7 @@ function toISODateString(value: string): ISODateString {
 	return value;
 }
 
-interface LoadHistory {
+export interface LoadHistory {
 	id: number;
 	path: string;
 	count: number;
@@ -96,6 +97,7 @@ function App() {
 	const [filePath, setFilePath] = useState("");
 	const [openConfirmDialog, setOpenConfirmDialog] = useState(false);
 	const [error, setError] = useState("");
+	const [histories, setHistories] = useState<LoadHistory[]>([]);
 
 	// Check the data has already existed in the sqlite database
 	// If the data is already existed, load the data from the database
@@ -106,7 +108,7 @@ function App() {
 
 			if (existenceInfo.exists) {
 				setIsLoaded(true);
-				setFilePath(existenceInfo.histories[0].path);
+				setHistories(existenceInfo.histories);
 			} else {
 				setIsLoaded(false);
 			}
@@ -158,7 +160,7 @@ function App() {
 		<div>
 			{isLoaded ? (
 				<div>
-					<p>File path: {filePath}</p>
+					<LoadHistoryList histories={histories} />
 				</div>
 			) : (
 				<div>
@@ -171,6 +173,7 @@ function App() {
 			{openConfirmDialog && (
 				<div>
 					<p>Are you sure you want to load the file?</p>
+					<p>file path: {filePath}</p>
 					{/* biome-ignore lint/a11y/useButtonType: <explanation> */}
 					<button onClick={loadFile}>Yes</button>
 					{/* biome-ignore lint/a11y/useButtonType: <explanation> */}
