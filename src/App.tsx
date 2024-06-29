@@ -2,7 +2,7 @@ import { open } from "@tauri-apps/api/dialog";
 import { useEffect, useState } from "react";
 import "./App.css";
 import { invoke } from "@tauri-apps/api/tauri";
-import * as dayjs from "dayjs";
+import dayjs from "dayjs";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import LoadHistoryList from "./components/LoadHistory.tsx";
