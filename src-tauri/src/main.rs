@@ -16,6 +16,9 @@ use custom_error::CustomError;
 
 mod custom_error;
 mod load;
+mod error;
+mod db;
+mod utils;
 
 impl serde::Serialize for CustomError {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
