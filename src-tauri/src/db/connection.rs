@@ -6,6 +6,7 @@ use crate::db::db_error::DbError;
 
 const DB_NAME: &str = "data.db";
 
+#[allow(dead_code)]
 fn db_path(mut base: PathBuf) -> Result<String, CustomError> {
     base.push(DB_NAME);
 
@@ -15,6 +16,7 @@ fn db_path(mut base: PathBuf) -> Result<String, CustomError> {
     Ok(db_path)
 }
 
+#[allow(dead_code)]
 async fn get_sqlite_pool(db_path: String) -> Result<SqlitePool, CustomError> {
     let pool = SqlitePool::connect(&db_path)
         .await
@@ -23,6 +25,7 @@ async fn get_sqlite_pool(db_path: String) -> Result<SqlitePool, CustomError> {
     Ok(pool)
 }
 
+#[allow(dead_code)]
 pub async fn initialize_sqlite() -> Result<(), CustomError> {
     Ok(())
 }
