@@ -1,6 +1,5 @@
 use std::path::PathBuf;
 use sqlx::SqlitePool;
-use tauri::AppHandle;
 
 use crate::error::CustomError;
 use crate::db::db_error::DbError;
@@ -10,7 +9,7 @@ const DB_NAME: &str = "data.db";
 fn db_path(mut base: PathBuf) -> String {
     base.push(DB_NAME);
 
-    format!("sqlite://{}", base.to_str().expect("Failed to get db path"))
+    format!("sqlite://{}", base.to_str())
 }
 
 async fn get_sqlite_pool(db_path: String) -> Result<SqlitePool, CustomError> {
@@ -21,6 +20,6 @@ async fn get_sqlite_pool(db_path: String) -> Result<SqlitePool, CustomError> {
     Ok(pool)
 }
 
-pub async fn initialize_sqlite(handle: AppHandle) -> Result<(), CustomError> {
+pub async fn initialize_sqlite() -> Result<(), CustomError> {
     Ok(())
 }
