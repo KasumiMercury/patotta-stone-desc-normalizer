@@ -13,6 +13,14 @@ fn db_path(mut base: PathBuf) -> String {
     format!("sqlite://{}", base.to_str().expect("Failed to get db path"))
 }
 
+async fn get_sqlite_pool(db_path: String) -> Result<SqlitePool, CustomError> {
+    let pool = SqlitePool::connect(&db_path)
+        .await
+        .map_err(|e| CustomError::DbError(DbError::ConnectionError(e)))?;
+
+    Ok(pool)
+}
+
 pub async fn initialize_sqlite(handle: AppHandle) -> Result<(), CustomError> {
     Ok(())
 }
