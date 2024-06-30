@@ -1,16 +1,12 @@
 use std::path::PathBuf;
 use tauri::AppHandle;
+use crate::utils::util_errors::UtilError;
 
 const DB_NAME: &str = "data.db";
 
-fn app_path(handle: &AppHandle) -> PathBuf {
-    handle
-        .app_data_dir()
-        .expect("Failed to get app path");
-
-    println!("app path: {:?}", app_path);
-
-    app_path
+fn app_path(handle: &AppHandle) -> Result<PathBuf, UtilError> {
+    handle.app_data_dir()
+        .ok_or(UtilError::AppDataError)
 }
 
 fn db_path(mut base: PathBuf) -> String {
