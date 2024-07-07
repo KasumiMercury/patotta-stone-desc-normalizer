@@ -38,7 +38,7 @@ async fn migrate_database(pool: &SqlitePool) -> Result<(), CustomError> {
 
 #[allow(dead_code)]
 pub async fn initialize_sqlite(data_path: PathBuf) -> Result<(), CustomError> {
-    let db_path = db_path(data_path)?;
+    let db_path = db_path(data_path.clone())?;
 
     // create the data dir if it does not exist
     create_dir_all(&data_path).unwrap();
