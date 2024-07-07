@@ -27,6 +27,15 @@ async fn get_sqlite_pool(db_path: String) -> Result<SqlitePool, CustomError> {
     Ok(pool)
 }
 
+async fn migrate_database(pool: &SqlitePool) -> Result<(), CustomError> {
+    let migrator = sqlx::migrate!("./migrations");
+    migrator
+        .run(pool)
+        .await
+        .map_err(|e| CustomError::DbError(DbError::MigrateError(e)))?;
+    Ok(())
+}
+
 #[allow(dead_code)]
 pub async fn initialize_sqlite(data_path: PathBuf) -> Result<(), CustomError> {
     let db_path = db_path(data_path)?;
