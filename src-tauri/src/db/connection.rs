@@ -56,5 +56,9 @@ pub async fn initialize_sqlite(data_path: PathBuf) -> Result<(), CustomError> {
         println!("sqlite database created at {}", db_path);
     }
 
+    // create the pool
+    let pool = get_sqlite_pool(db_path.clone())
+        .await?;
+
     Ok(())
 }
