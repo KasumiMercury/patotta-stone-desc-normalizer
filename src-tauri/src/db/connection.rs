@@ -1,5 +1,7 @@
+use std::fs::create_dir_all;
 use std::path::PathBuf;
-use sqlx::SqlitePool;
+use sqlx::migrate::MigrateDatabase;
+use sqlx::{Sqlite, SqlitePool};
 
 use crate::error::CustomError;
 use crate::db::db_error::DbError;
@@ -26,6 +28,24 @@ async fn get_sqlite_pool(db_path: String) -> Result<SqlitePool, CustomError> {
 }
 
 #[allow(dead_code)]
-pub async fn initialize_sqlite() -> Result<(), CustomError> {
+pub async fn initialize_sqlite(data_path: PathBuf) -> Result<(), CustomError> {
+    let db_path = db_path(data_path)?;
+
+    // create the data dir if it does not exist
+    create_dir_all(&data_path).unwrap();
+
+    // create the sqlite database if it does not exist
+    let db_exists = Sqlite::database_exists(&db_path)
+        .await
+        .map_err(|e| CustomError::DbError(DbError::CreateError(e)))?;
+    if !db_exists {
+        Sqlite::create_database(&db_path)
+            .await
+            .map_err(|e| CustomError::DbError(DbError::CreateError(e)))?;
+
+        // print the path
+        println!("sqlite database created at {}", db_path);
+    }
+
     Ok(())
 }
