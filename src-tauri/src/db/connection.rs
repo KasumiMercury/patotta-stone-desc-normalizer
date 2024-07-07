@@ -13,7 +13,7 @@ fn db_path(mut base: PathBuf) -> Result<String, CustomError> {
     base.push(DB_NAME);
 
     // add sqlite:// to the path
-    let db_path = format!("sqlite://{}", base.to_str().ok_or(CustomError::DbError(DbError::PathError))?);
+    let db_path = format!("sqlite://{}", base.to_str().ok_or(CustomError::DbError(DbError::Path))?);
 
     Ok(db_path)
 }
@@ -22,7 +22,7 @@ fn db_path(mut base: PathBuf) -> Result<String, CustomError> {
 async fn get_sqlite_pool(db_path: String) -> Result<SqlitePool, CustomError> {
     let pool = SqlitePool::connect(&db_path)
         .await
-        .map_err(|e| CustomError::DbError(DbError::ConnectionError(e)))?;
+        .map_err(|e| CustomError::DbError(DbError::Connection(e)))?;
 
     Ok(pool)
 }
@@ -32,7 +32,7 @@ async fn migrate_database(pool: &SqlitePool) -> Result<(), CustomError> {
     migrator
         .run(pool)
         .await
-        .map_err(|e| CustomError::DbError(DbError::MigrateError(e)))?;
+        .map_err(|e| CustomError::DbError(DbError::Migrate(e)))?;
     Ok(())
 }
 
@@ -46,11 +46,11 @@ pub async fn initialize_sqlite(data_path: PathBuf) -> Result<(), CustomError> {
     // create the sqlite database if it does not exist
     let db_exists = Sqlite::database_exists(&db_path)
         .await
-        .map_err(|e| CustomError::DbError(DbError::CreateError(e)))?;
+        .map_err(|e| CustomError::DbError(DbError::Create(e)))?;
     if !db_exists {
         Sqlite::create_database(&db_path)
             .await
-            .map_err(|e| CustomError::DbError(DbError::CreateError(e)))?;
+            .map_err(|e| CustomError::DbError(DbError::Create(e)))?;
 
         // print the path
         println!("sqlite database created at {}", db_path);
