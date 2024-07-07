@@ -60,5 +60,11 @@ pub async fn initialize_sqlite(data_path: PathBuf) -> Result<(), CustomError> {
     let pool = get_sqlite_pool(db_path.clone())
         .await?;
 
+    // run migrations
+    if !db_exists {
+        migrate_database(&pool)
+            .await?;
+    }
+
     Ok(())
 }
