@@ -1,2 +1,2 @@
 pub mod path;
-mod util_errors;
+pub mod util_errors;
