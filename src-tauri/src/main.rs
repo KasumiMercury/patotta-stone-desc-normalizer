@@ -15,9 +15,9 @@ use tauri::{AppHandle, Manager, RunEvent, State};
 use custom_error::CustomError;
 
 mod custom_error;
-mod load;
-mod error;
 mod db;
+mod error;
+mod load;
 mod utils;
 
 impl serde::Serialize for CustomError {

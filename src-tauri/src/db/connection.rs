@@ -1,10 +1,10 @@
-use std::fs::create_dir_all;
-use std::path::PathBuf;
 use sqlx::migrate::MigrateDatabase;
 use sqlx::{Sqlite, SqlitePool};
+use std::fs::create_dir_all;
+use std::path::PathBuf;
 
-use crate::error::CustomError;
 use crate::db::db_error::DbError;
+use crate::error::CustomError;
 
 const DB_NAME: &str = "data.db";
 
@@ -13,7 +13,10 @@ fn db_path(mut base: PathBuf) -> Result<String, CustomError> {
     base.push(DB_NAME);
 
     // add sqlite:// to the path
-    let db_path = format!("sqlite://{}", base.to_str().ok_or(CustomError::DbError(DbError::Path))?);
+    let db_path = format!(
+        "sqlite://{}",
+        base.to_str().ok_or(CustomError::DbError(DbError::Path))?
+    );
 
     Ok(db_path)
 }
@@ -57,13 +60,11 @@ pub async fn initialize_sqlite(data_path: PathBuf) -> Result<(), CustomError> {
     }
 
     // create the pool
-    let pool = get_sqlite_pool(db_path.clone())
-        .await?;
+    let pool = get_sqlite_pool(db_path.clone()).await?;
 
     // run migrations
     if !db_exists {
-        migrate_database(&pool)
-            .await?;
+        migrate_database(&pool).await?;
     }
 
     Ok(())
