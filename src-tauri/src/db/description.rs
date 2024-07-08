@@ -1,3 +1,4 @@
+use serde::{Deserialize, Serialize};
 use sqlx::{FromRow, SqlitePool};
 use tauri::State;
 
@@ -56,6 +57,12 @@ async fn get_description_by_source_id(
     Ok(desc)
 }
 
+#[derive(Debug, Serialize, Deserialize)]
+struct  PageResult {
+    page: Vec<Description>,
+    has_prev_page: bool,
+    has_next_page: bool,
+}
 async fn get_description_page() -> Result<Vec<Description>,CustomError>{
     let page: Vec<Description> = Vec::new();
     // TODO:Implement pagination
