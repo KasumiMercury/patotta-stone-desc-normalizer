@@ -55,3 +55,9 @@ async fn get_description_by_source_id(
 
     Ok(desc)
 }
+
+async fn get_description_page() -> Result<Vec<Description>,CustomError>{
+    let page: Vec<Description> = Vec::new();
+    // TODO:Implement pagination
+    Ok(page)
+}
