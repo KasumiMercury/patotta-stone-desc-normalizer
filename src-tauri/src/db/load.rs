@@ -3,10 +3,29 @@ use tauri::State;
 
 #[derive(Debug, sqlx::FromRow)]
 struct History {
-    pub id: i32,
-    pub path: String,
-    pub count: i32,
-    pub loaded_at: String,
+    id: i32,
+    path: String,
+    count: i32,
+    loaded_at: String,
+}
+
+impl History {
+    // accessors
+    pub fn id(&self) -> i32{
+        self.id
+    }
+
+    pub fn path(&self) -> &str{
+        &self.path
+    }
+
+    pub fn count(&self) -> i32{
+        self.count
+    }
+
+    pub fn loaded_at(&self) -> &str{
+        &self.loaded_at
+    }
 }
 
 async fn get_load_history(pool: State<'_,SqlitePool>) -> Result<Vec<History>,Err()>{
