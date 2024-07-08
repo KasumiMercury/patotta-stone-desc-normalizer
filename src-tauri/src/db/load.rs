@@ -1,9 +1,8 @@
 use sqlx::SqlitePool;
 use tauri::State;
 
-use crate::History;
-
-struct Hisory {
+#[derive(Debug, sqlx::FromRow)]
+struct History {
     pub id: i32,
     pub path: String,
     pub count: i32,
