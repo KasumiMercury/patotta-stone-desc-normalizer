@@ -1,10 +1,10 @@
-use sqlx::SqlitePool;
+use sqlx::{FromRow, SqlitePool};
 use tauri::State;
 
 use crate::custom_error::CustomError;
 use crate::db::db_error::DbError;
 
-#[derive((Debug, FromRow))]
+#[derive(Debug, FromRow)]
 struct Description {
     id: i32,
     source_id: String,
