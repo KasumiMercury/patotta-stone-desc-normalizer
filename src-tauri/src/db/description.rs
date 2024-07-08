@@ -1,11 +1,11 @@
 use serde::{Deserialize, Serialize};
-use sqlx::{FromRow, SqlitePool};
+use sqlx::{FromRow, Row, SqlitePool};
 use tauri::State;
 
 use crate::custom_error::CustomError;
 use crate::db::db_error::DbError;
 
-#[derive(Debug, FromRow)]
+#[derive(Debug,Serialize, Deserialize, FromRow)]
 struct Description {
     id: i32,
     source_id: String,
@@ -58,13 +58,40 @@ async fn get_description_by_source_id(
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct  PageResult {
+struct PageResult {
     page: Vec<Description>,
     has_prev_page: bool,
     has_next_page: bool,
 }
-async fn get_description_page() -> Result<Vec<Description>,CustomError>{
-    let page: Vec<Description> = Vec::new();
-    // TODO:Implement pagination
-    Ok(page)
+
+// pagination with seek method
+async fn get_description_page(
+    pool: State<'_, SqlitePool>,
+    page_size: i32,
+    last_id: i32,
+) -> Result<PageResult, CustomError> {
+    let p = pool.clone();
+    let rows = sqlx::query(
+        r#"
+        SELECT * FROM desc WHERE id > ? ORDER BY id ASC LIMIT ?
+        "#,
+    ).bind(last_id).bind(page_size+1).fetch_all(&*p).await.map_err(|e| CustomError::DbError(DbError::Query(e)))?;
+
+    let mut items = Vec::new();
+    for row in rows {
+        items.push(Description {
+            id: row.get("id"),
+            source_id: row.get("source_id"),
+            title: row.get("title"),
+            description: row.get("description"),
+            published_at: row.get("published_at"),
+            actual_start_at: row.get("actual_start_at"),
+        });
+    }
+
+    Ok(PageResult {
+        page: items,
+        has_prev_page: false,
+        has_next_page: false,
+    })
 }
