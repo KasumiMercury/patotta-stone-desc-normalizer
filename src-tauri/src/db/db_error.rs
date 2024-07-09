@@ -8,4 +8,6 @@ pub enum DbError {
     Migrate(#[from] sqlx::migrate::MigrateError),
     #[error("Failed to connect to database: {0}")]
     Connection(#[source] sqlx::Error),
+    #[error("Failed to execute query: {0}")]
+    Query(#[source] sqlx::Error),
 }
